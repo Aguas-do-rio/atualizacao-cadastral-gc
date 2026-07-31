@@ -612,17 +612,31 @@
     return termos.some(t => c.includes(t));
   }
 
+  async function fetchAllPages(endpoint){
+    let all = [];
+    let offset = 0;
+    const pageSize = 1000;
+    while(true){
+      const res = await fetch(SUPABASE_URL + endpoint, { headers: Object.assign({'Range': offset + '-' + (offset + pageSize - 1)}, HEADERS) });
+      if(!res.ok) break;
+      const batch = await res.json();
+      all = all.concat(batch);
+      if(batch.length < pageSize) break;
+      offset += pageSize;
+    }
+    return all;
+  }
+
   async function loadVisaoGeral(){
     const tbExec = document.getElementById('tbody-por-executivo');
     const tbSem = document.getElementById('tbody-semanal');
     tbExec.innerHTML = '<tr class="empty-row"><td colspan="9">Carregando...</td></tr>';
     tbSem.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
 
-    const headersRange = Object.assign({'Range':'0-19999'}, HEADERS);
     const [todas, todasOS, todasJust] = await Promise.all([
-      fetch(SUPABASE_URL + '/matriculas?select=matricula,cliente,executivo,status_fluxo,pendente_email,pendente_celular,pendente_cpf_cnpj,pendente_cep', { headers: headersRange }).then(r=>r.json()).catch(()=>[]),
-      fetch(SUPABASE_URL + '/ordens_servico?select=matricula,aberto_por,aberto_em', { headers: headersRange }).then(r=>r.json()).catch(()=>[]),
-      fetch(SUPABASE_URL + '/justificativas?select=matricula,aberto_por,aberto_em,status,validado_por,validado_em', { headers: headersRange }).then(r=>r.json()).catch(()=>[])
+      fetchAllPages('/matriculas?select=matricula,cliente,executivo,status_fluxo,pendente_email,pendente_celular,pendente_cpf_cnpj,pendente_cep'),
+      fetchAllPages('/ordens_servico?select=matricula,aberto_por,aberto_em'),
+      fetchAllPages('/justificativas?select=matricula,aberto_por,aberto_em,status,validado_por,validado_em')
     ]);
 
     // ---- KPIs gerais ----
