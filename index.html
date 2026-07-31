@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atualização Cadastral · Grandes Clientes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A2A43; --navy-2:#123A5C; --navy-3:#1B4E76;
+    --water:#1C7EBE; --water-soft:#E4F1FA; --water-line:#C9E3F3;
+    --leaf:#2C9A66; --leaf-soft:#E3F5EC; --leaf-line:#BFE6D2;
+    --amber:#B9791A; --amber-soft:#FBF1DE; --amber-line:#EFD9AE;
+    --rose:#C0492E; --rose-soft:#FBE9E5; --rose-line:#F0C7BC;
+    --bg:#EEF3F7; --surface:#FFFFFF; --border:#DEE6EC;
+    --text:#12232F; --text-mut:#5B7285; --text-faint:#8CA0AF;
+    --radius:16px;
+    --shadow-xs:0 1px 2px rgba(10,42,67,.05);
+    --shadow-sm:0 4px 14px -6px rgba(10,42,67,.14);
+    --shadow-md:0 14px 34px -14px rgba(10,42,67,.28);
+    --shadow-lg:0 24px 60px -20px rgba(10,42,67,.34);
+    --font-display:'Manrope',sans-serif; --font-body:'Inter',sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:#C7D6DF; border-radius:100px; }
+  button, input, select, textarea{ font-family:var(--font-body); }
+  :focus-visible{ outline:2px solid var(--water); outline-offset:2px; border-radius:4px; }
+
+  .hero-wrap{
+    background:
+      radial-gradient(1100px 420px at 12% -20%, rgba(255,255,255,.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(28,126,190,.35), transparent 55%),
+      linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 55%, var(--navy-3) 100%);
+    padding:34px 20px 56px; position:relative; overflow:hidden;
+  }
+  .hero-inner{ max-width:1200px; margin:0 auto; position:relative; z-index:1; }
+  .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:#BFE0F5; font-weight:700; margin-bottom:14px; }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#5FC1F0; box-shadow:0 0 0 4px rgba(95,193,240,.22); }
+  .hero-inner h1{ font-family:var(--font-display); font-weight:800; font-size:clamp(24px,3.4vw,32px); color:#fff; margin:0 0 10px; letter-spacing:-.01em; }
+  .hero-inner > p{ margin:0; color:#CBDCE9; font-size:14px; max-width:700px; line-height:1.65; }
+
+  .role-switch{ display:flex; gap:8px; margin-top:26px; }
+  .role-switch button{
+    appearance:none; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#DCEAF4;
+    font-weight:700; font-size:13.5px; padding:11px 20px; border-radius:11px; cursor:pointer; transition:.15s;
+    display:flex; align-items:center; gap:8px;
+  }
+  .role-switch button svg{ width:16px; height:16px; }
+  .role-switch button.active{ background:#fff; color:var(--navy); border-color:#fff; }
+  .role-switch button:not(.active):hover{ background:rgba(255,255,255,.12); }
+
+  .app{ max-width:1200px; margin:-30px auto 60px; padding:0 20px; position:relative; z-index:2; }
+  .view{ display:none; }
+  .view.active{ display:block; animation:viewIn .3s cubic-bezier(.2,.8,.2,1); }
+  @keyframes viewIn{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
+
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px 22px 24px; box-shadow:var(--shadow-xs); margin-top:18px; }
+  .card h2{ font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--navy); margin:0 0 4px; }
+  .card .sub{ font-size:13px; color:var(--text-mut); margin:0 0 16px; line-height:1.55; }
+
+  .kpi-row{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+  .kpi{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 16px 14px; position:relative; overflow:hidden; }
+  .kpi::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--water); }
+  .kpi.leaf::before{ background:var(--leaf); } .kpi.amber::before{ background:var(--amber); }
+  .kpi .label{ font-size:11px; color:var(--text-mut); font-weight:700; margin-bottom:6px; }
+  .kpi .value{ font-family:var(--font-display); font-size:23px; font-weight:800; color:var(--navy); }
+  .kpi .value.leaf{ color:var(--leaf); } .kpi .value.amber{ color:var(--amber); }
+
+  .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:16px 0; }
+  .toolbar select, .toolbar input{ font-size:13px; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); }
+  .search-box{ position:relative; flex:1; min-width:200px; }
+  .search-box svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-faint); }
+  .search-box input{ width:100%; padding:9px 12px 9px 34px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-mut); font-weight:700; padding:9px 10px; border-bottom:1px solid var(--border); }
+  td{ padding:10px 10px; border-bottom:1px solid #EEF3F6; vertical-align:middle; }
+  tbody tr:hover td{ background:#FAFCFD; }
+  tr:last-child td{ border-bottom:none; }
+  .empty-row td{ text-align:center; color:var(--text-faint); padding:32px 10px; }
+
+  .badge{ display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:100px; font-size:10.5px; font-weight:700; white-space:nowrap; }
+  .badge-pendente{ background:var(--amber-soft); color:var(--amber); }
+  .badge-os{ background:var(--water-soft); color:var(--water); }
+  .badge-justificativa{ background:#F1EAFB; color:#7C4FCB; }
+  .badge-atualizado{ background:var(--leaf-soft); color:var(--leaf); }
+  .pend-tag{ display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; background:var(--rose-soft); color:var(--rose); margin:1px 2px 1px 0; }
+
+  .btn{ font-weight:700; font-size:13px; cursor:pointer; border:none; border-radius:10px; padding:9px 16px; transition:.15s; display:inline-flex; align-items:center; gap:6px; }
+  .btn-primary{ background:var(--navy); color:#fff; } .btn-primary:hover{ background:var(--navy-2); }
+  .btn-ghost{ background:none; border:1px solid var(--border); color:var(--navy); } .btn-ghost:hover{ border-color:var(--water); color:var(--water); background:var(--water-soft); }
+  .btn-approve{ background:var(--leaf); color:#fff; } .btn-approve:hover{ background:#25835A; }
+  .btn-reject{ background:none; border:1px solid var(--rose-line); color:var(--rose); } .btn-reject:hover{ background:var(--rose-soft); }
+  .btn-sm{ padding:6px 12px; font-size:12px; }
+
+  .modal-overlay{ position:fixed; inset:0; background:rgba(10,20,30,.55); display:none; align-items:flex-start; justify-content:center; z-index:999; padding:40px 20px; overflow-y:auto; }
+  .modal-overlay.open{ display:flex; }
+  .modal{ background:var(--surface); border-radius:18px; max-width:560px; width:100%; padding:26px; box-shadow:var(--shadow-lg); }
+  .modal-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+  .modal-head h3{ font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--navy); margin:0 0 4px; }
+  .modal-close{ background:none; border:none; cursor:pointer; color:var(--text-mut); font-size:20px; line-height:1; padding:0; }
+
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12px; font-weight:700; color:var(--text-mut); margin-bottom:6px; }
+  .field input, .field select, .field textarea{ width:100%; font-size:13.5px; padding:9px 11px; border-radius:9px; border:1px solid var(--border); background:#FBFDFE; }
+  .field textarea{ min-height:70px; resize:vertical; }
+  .check-row{ display:flex; flex-wrap:wrap; gap:10px; }
+  .check-row label{ display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500; color:var(--text); cursor:pointer; background:#FBFDFE; border:1px solid var(--border); padding:7px 12px; border-radius:9px; }
+  .check-row input{ width:auto; accent-color:var(--water); }
+
+  .path-toggle{ display:flex; gap:8px; margin-bottom:16px; }
+  .path-toggle button{ flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:#FBFDFE; font-weight:700; font-size:12.5px; cursor:pointer; color:var(--text-mut); }
+  .path-toggle button.active{ background:var(--navy); color:#fff; border-color:var(--navy); }
+  .path-panel{ display:none; }
+  .path-panel.active{ display:block; }
+
+  .client-info{ background:var(--water-soft); border:1px solid var(--water-line); border-radius:12px; padding:12px 14px; font-size:13px; margin-bottom:16px; }
+  .client-info b{ color:var(--navy); }
+
+  .msg{ font-size:12.5px; font-weight:700; margin-top:8px; }
+  .placeholder-box{ text-align:center; color:var(--text-faint); font-size:13px; padding:30px 10px; }
+
+  @media (max-width:900px){ .kpi-row{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:560px){ .kpi-row{ grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+
+<div class="hero-wrap">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span>Águas do Rio · Grandes Clientes</div>
+    <h1>Atualização Cadastral</h1>
+    <p>Cada executivo trata sua própria carteira: abre uma OS quando o cliente atualiza os dados, ou registra uma justificativa quando não é possível. A gestora valida as justificativas — só isso conta como cadastro atualizado.</p>
+    <div class="role-switch">
+      <button class="active" data-role="executivo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg>
+        Sou executivo
+      </button>
+      <button data-role="gestora">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        Sou gestora
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ================= EXECUTIVO ================= -->
+  <section id="view-executivo" class="view active">
+    <div class="card">
+      <h2>Minha carteira</h2>
+      <p class="sub">Selecione seu nome para ver as matrículas sob sua responsabilidade.</p>
+      <select id="sel-executivo" style="max-width:340px; padding:10px 12px; border-radius:10px; border:1px solid var(--border); font-size:13.5px; width:100%;">
+        <option value="">Selecione seu nome</option>
+      </select>
+    </div>
+
+    <div id="exec-content" style="display:none;">
+      <div class="kpi-row" style="margin-top:18px;">
+        <div class="kpi"><div class="label">Carteira</div><div class="value" id="kpi-total">0</div></div>
+        <div class="kpi leaf"><div class="label">Atualizadas</div><div class="value leaf" id="kpi-atualizadas">0</div></div>
+        <div class="kpi amber"><div class="label">Pendentes</div><div class="value amber" id="kpi-pendentes">0</div></div>
+        <div class="kpi"><div class="label">Aguard. OS</div><div class="value" id="kpi-aguardando-os">0</div></div>
+        <div class="kpi"><div class="label">Aguard. justificativa</div><div class="value" id="kpi-aguardando-just">0</div></div>
+        <div class="kpi leaf"><div class="label">% concluído</div><div class="value leaf" id="kpi-pct">0%</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Matrículas</h2>
+        <div class="toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="busca-matricula" placeholder="Buscar por matrícula ou cliente...">
+          </div>
+          <select id="f-status">
+            <option value="">Todos os status</option>
+            <option value="pendente_tratamento">Pendente de tratamento</option>
+            <option value="aguardando_execucao_os">Aguardando execução da OS</option>
+            <option value="aguardando_validacao_justificativa">Aguardando validação</option>
+            <option value="cadastro_atualizado">Cadastro atualizado</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Matrícula</th><th>Cliente</th><th>Prioridade</th><th>Pendências</th><th>Status</th><th></th></tr></thead>
+            <tbody id="tbody-carteira"><tr class="empty-row"><td colspan="6">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GESTORA ================= -->
+  <section id="view-gestora" class="view">
+    <div class="card">
+      <h2>Justificativas aguardando validação</h2>
+      <p class="sub">Aprovar marca a matrícula como cadastro atualizado. Rejeitar devolve para a carteira do executivo.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Matrícula</th><th>Cliente</th><th>Executivo</th><th>Motivo</th><th>Observação</th><th>Data</th><th></th></tr></thead>
+          <tbody id="tbody-justificativas"><tr class="empty-row"><td colspan="7">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Validadas recentemente</h2>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Matrícula</th><th>Executivo</th><th>Motivo</th><th>Resultado</th><th>Gestora</th><th>Data</th></tr></thead>
+          <tbody id="tbody-historico-just"><tr class="empty-row"><td colspan="6">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ MODAL: TRATAR MATRÍCULA ============ -->
+<div class="modal-overlay" id="modal-tratar">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3>Tratar matrícula</h3>
+        <div class="sub" id="modal-matricula-sub" style="font-size:12.5px; color:var(--text-mut);"></div>
+      </div>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+
+    <div class="client-info" id="modal-client-info"></div>
+
+    <div class="path-toggle">
+      <button class="active" data-path="os">Abrir OS</button>
+      <button data-path="justificativa">Não foi possível abrir OS</button>
+    </div>
+
+    <div class="path-panel active" id="path-os">
+      <div class="field">
+        <label>Número da OS</label>
+        <input type="text" id="in-numero-os" placeholder="Ex: 123456">
+      </div>
+      <div class="field">
+        <label>Quais dados foram atualizados?</label>
+        <div class="check-row">
+          <label><input type="checkbox" value="E-mail"> E-mail</label>
+          <label><input type="checkbox" value="Celular"> Celular</label>
+          <label><input type="checkbox" value="CPF/CNPJ"> CPF/CNPJ</label>
+          <label><input type="checkbox" value="CEP"> CEP</label>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-salvar-os">Registrar OS</button>
+      <div class="msg" id="msg-os"></div>
+    </div>
+
+    <div class="path-panel" id="path-justificativa">
+      <div class="field">
+        <label>Motivo</label>
+        <select id="in-motivo"><option value="">Selecione</option></select>
+      </div>
+      <div class="field">
+        <label>Observação <span style="font-weight:500; color:var(--text-faint);">(obrigatória para "Outro")</span></label>
+        <textarea id="in-observacao" placeholder="Detalhe o motivo, se necessário"></textarea>
+      </div>
+      <button class="btn btn-primary" id="btn-salvar-justificativa">Enviar justificativa</button>
+      <div class="msg" id="msg-justificativa"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SUPABASE_URL = 'https://yidsjyfcuzytkejctqfp.supabase.co/rest/v1';
+  const SUPABASE_KEY = 'sb_publishable_dJWDHA-YGrM3jIXgFBuk1w_ZxZSaHBQ';
+  const HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+
+  const EXECUTIVOS = ['Alessandra dos Santos','Alessandro Silveira','Aline Nunes','Danielle Matta','Danillo Castro',
+    'Diogo Garcia','Ediane Andrade','Ettiene Simoes','Fellipe Braga','Hagata Oliveira','Igor Coelho','Isabella Celio',
+    'Lhorrany Diamante','Livia Christine','Manuela Curvello','Marcos Rato','Matheus Betbeder','Mirella Saviti',
+    'Raniely Silva','Taina Costa','Tatiana Ribeiro'];
+
+  const MOTIVOS = ['Cliente não possui e-mail','Cliente não possui celular','Cliente recusou informar CPF/CNPJ',
+    'CEP inexistente','Matrícula encerrada','Outro'];
+
+  let CARTEIRA = [];
+  let currentExecutivo = '';
+  let modalMatricula = null;
+
+  function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function fmtDateBR(iso){ if(!iso) return '–'; const d = new Date(iso); if(isNaN(d)) return '–'; return d.toLocaleDateString('pt-BR'); }
+
+  async function apiGet(path){
+    const res = await fetch(SUPABASE_URL + path, { headers: HEADERS });
+    if(!res.ok){ console.error('GET error', path, await res.text().catch(()=>'')); return []; }
+    return res.json();
+  }
+  async function apiPatch(path, body){
+    const res = await fetch(SUPABASE_URL + path, { method:'PATCH', headers: Object.assign({'Prefer':'return=representation'}, HEADERS), body: JSON.stringify(body) });
+    if(!res.ok){ console.error('PATCH error', path, await res.text().catch(()=>'')); return null; }
+    return res.json();
+  }
+  async function apiPost(path, body){
+    const res = await fetch(SUPABASE_URL + path, { method:'POST', headers: Object.assign({'Prefer':'return=representation'}, HEADERS), body: JSON.stringify(body) });
+    if(!res.ok){ console.error('POST error', path, await res.text().catch(()=>'')); return null; }
+    return res.json();
+  }
+  function logHistorico(matricula, usuario, acao, detalhes){
+    apiPost('/historico', { matricula, usuario, acao, detalhes }).catch(()=>{});
+  }
+
+  // ---------- init selects ----------
+  function initSelects(){
+    const selExec = document.getElementById('sel-executivo');
+    EXECUTIVOS.forEach(n=>{ const o = document.createElement('option'); o.value = n; o.textContent = n; selExec.appendChild(o); });
+    const selMotivo = document.getElementById('in-motivo');
+    MOTIVOS.forEach(m=>{ const o = document.createElement('option'); o.value = m; o.textContent = m; selMotivo.appendChild(o); });
+  }
+
+  // ---------- role switch ----------
+  document.querySelectorAll('.role-switch button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.role-switch button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-' + btn.dataset.role).classList.add('active');
+      if(btn.dataset.role === 'gestora') loadJustificativas();
+    });
+  });
+
+  // ---------- carteira do executivo ----------
+  document.getElementById('sel-executivo').addEventListener('change', async (e)=>{
+    currentExecutivo = e.target.value;
+    if(!currentExecutivo){ document.getElementById('exec-content').style.display = 'none'; return; }
+    document.getElementById('exec-content').style.display = 'block';
+    document.getElementById('tbody-carteira').innerHTML = '<tr class="empty-row"><td colspan="6">Carregando...</td></tr>';
+    CARTEIRA = await apiGet('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
+    renderCarteira();
+  });
+
+  document.getElementById('busca-matricula').addEventListener('input', renderCarteira);
+  document.getElementById('f-status').addEventListener('change', renderCarteira);
+
+  const STATUS_LABEL = {
+    pendente_tratamento: '<span class="badge badge-pendente">⏳ Pendente</span>',
+    aguardando_execucao_os: '<span class="badge badge-os">🔧 Aguard. OS</span>',
+    aguardando_validacao_justificativa: '<span class="badge badge-justificativa">📝 Aguard. validação</span>',
+    cadastro_atualizado: '<span class="badge badge-atualizado">✅ Atualizado</span>'
+  };
+
+  function pendTags(r){
+    const tags = [];
+    if(r.pendente_email) tags.push('E-mail');
+    if(r.pendente_celular) tags.push('Celular');
+    if(r.pendente_cpf_cnpj) tags.push('CPF/CNPJ');
+    if(r.pendente_cep) tags.push('CEP');
+    if(tags.length===0) return '<span style="color:var(--text-faint); font-size:12px;">—</span>';
+    return tags.map(t=>`<span class="pend-tag">${t}</span>`).join('');
+  }
+
+  function renderCarteira(){
+    const busca = (document.getElementById('busca-matricula').value||'').toLowerCase();
+    const fStatus = document.getElementById('f-status').value;
+    const filtered = CARTEIRA.filter(r=>
+      (!busca || String(r.matricula).includes(busca) || (r.cliente||'').toLowerCase().includes(busca)) &&
+      (!fStatus || r.status_fluxo === fStatus)
+    );
+
+    document.getElementById('kpi-total').textContent = CARTEIRA.length;
+    document.getElementById('kpi-atualizadas').textContent = CARTEIRA.filter(r=>r.status_fluxo==='cadastro_atualizado').length;
+    document.getElementById('kpi-pendentes').textContent = CARTEIRA.filter(r=>r.status_fluxo==='pendente_tratamento').length;
+    document.getElementById('kpi-aguardando-os').textContent = CARTEIRA.filter(r=>r.status_fluxo==='aguardando_execucao_os').length;
+    document.getElementById('kpi-aguardando-just').textContent = CARTEIRA.filter(r=>r.status_fluxo==='aguardando_validacao_justificativa').length;
+    const pct = CARTEIRA.length ? Math.round(CARTEIRA.filter(r=>r.status_fluxo==='cadastro_atualizado').length / CARTEIRA.length * 100) : 0;
+    document.getElementById('kpi-pct').textContent = pct + '%';
+
+    const tb = document.getElementById('tbody-carteira');
+    tb.innerHTML = filtered.length===0 ? '<tr class="empty-row"><td colspan="6">Nenhuma matrícula encontrada.</td></tr>' :
+      filtered.slice(0,300).map(r=>`
+        <tr>
+          <td>${escapeHtml(r.matricula)}</td>
+          <td>${escapeHtml(r.cliente||'–')}</td>
+          <td>${escapeHtml((r.prioridade||'').replace('PRIORIDADE ','P'))}</td>
+          <td>${pendTags(r)}</td>
+          <td>${STATUS_LABEL[r.status_fluxo]||r.status_fluxo}</td>
+          <td>${r.status_fluxo==='pendente_tratamento' ? `<button class="btn btn-ghost btn-sm" data-tratar="${r.matricula}">Tratar</button>` : ''}</td>
+        </tr>
+      `).join('');
+
+    tb.querySelectorAll('[data-tratar]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openModal(Number(btn.dataset.tratar)));
+    });
+  }
+
+  // ---------- modal tratar ----------
+  const modal = document.getElementById('modal-tratar');
+  function openModal(matricula){
+    const rec = CARTEIRA.find(r=>r.matricula===matricula);
+    if(!rec) return;
+    modalMatricula = rec;
+    document.getElementById('modal-matricula-sub').textContent = 'Matrícula ' + rec.matricula;
+    document.getElementById('modal-client-info').innerHTML =
+      `<b>${escapeHtml(rec.cliente||'–')}</b> · ${escapeHtml(rec.carteira||'–')} · ${pendTags(rec)}`;
+    document.getElementById('in-numero-os').value = '';
+    document.querySelectorAll('#path-os input[type="checkbox"]').forEach(c=>c.checked=false);
+    document.getElementById('in-motivo').value = '';
+    document.getElementById('in-observacao').value = '';
+    document.getElementById('msg-os').textContent = '';
+    document.getElementById('msg-justificativa').textContent = '';
+    document.querySelectorAll('.path-toggle button').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.path-toggle button[data-path="os"]').classList.add('active');
+    document.getElementById('path-os').classList.add('active');
+    document.getElementById('path-justificativa').classList.remove('active');
+    modal.classList.add('open');
+  }
+  function closeModal(){ modal.classList.remove('open'); modalMatricula = null; }
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+
+  document.querySelectorAll('.path-toggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.path-toggle button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.path-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('path-' + btn.dataset.path).classList.add('active');
+    });
+  });
+
+  document.getElementById('btn-salvar-os').addEventListener('click', async ()=>{
+    const msg = document.getElementById('msg-os');
+    const numero = document.getElementById('in-numero-os').value.trim();
+    const dados = Array.from(document.querySelectorAll('#path-os input[type="checkbox"]:checked')).map(c=>c.value);
+    if(!numero){ msg.style.color='var(--rose)'; msg.textContent='Informe o número da OS.'; return; }
+    if(dados.length===0){ msg.style.color='var(--rose)'; msg.textContent='Selecione ao menos um dado atualizado.'; return; }
+
+    const os = await apiPost('/ordens_servico', { matricula: modalMatricula.matricula, numero_os: numero, dados_atualizados: dados, status:'aguardando_execucao', aberto_por: currentExecutivo });
+    if(!os){ msg.style.color='var(--rose)'; msg.textContent='Erro ao salvar. Tente novamente.'; return; }
+
+    await apiPatch('/matriculas?matricula=eq.' + modalMatricula.matricula, { status_fluxo:'aguardando_execucao_os' });
+    logHistorico(modalMatricula.matricula, currentExecutivo, 'Abertura de OS', `OS ${numero} — dados: ${dados.join(', ')}`);
+
+    modalMatricula.status_fluxo = 'aguardando_execucao_os';
+    renderCarteira();
+    closeModal();
+  });
+
+  document.getElementById('btn-salvar-justificativa').addEventListener('click', async ()=>{
+    const msg = document.getElementById('msg-justificativa');
+    const motivo = document.getElementById('in-motivo').value;
+    const obs = document.getElementById('in-observacao').value.trim();
+    if(!motivo){ msg.style.color='var(--rose)'; msg.textContent='Selecione um motivo.'; return; }
+    if(motivo==='Outro' && !obs){ msg.style.color='var(--rose)'; msg.textContent='Descreva o motivo em "Observação".'; return; }
+
+    const just = await apiPost('/justificativas', { matricula: modalMatricula.matricula, motivo, observacao: obs || null, status:'aguardando_validacao', aberto_por: currentExecutivo });
+    if(!just){ msg.style.color='var(--rose)'; msg.textContent='Erro ao salvar. Tente novamente.'; return; }
+
+    await apiPatch('/matriculas?matricula=eq.' + modalMatricula.matricula, { status_fluxo:'aguardando_validacao_justificativa' });
+    logHistorico(modalMatricula.matricula, currentExecutivo, 'Justificativa enviada', `${motivo}${obs ? ' — ' + obs : ''}`);
+
+    modalMatricula.status_fluxo = 'aguardando_validacao_justificativa';
+    renderCarteira();
+    closeModal();
+  });
+
+  // ---------- gestora ----------
+  async function loadJustificativas(){
+    const tbP = document.getElementById('tbody-justificativas');
+    tbP.innerHTML = '<tr class="empty-row"><td colspan="7">Carregando...</td></tr>';
+    const pendentes = await apiGet('/justificativas?status=eq.aguardando_validacao&select=*,matriculas(cliente)&order=aberto_em.asc');
+
+    tbP.innerHTML = pendentes.length===0 ? '<tr class="empty-row"><td colspan="7">Nada aguardando validação no momento.</td></tr>' :
+      pendentes.map(j=>`
+        <tr>
+          <td>${escapeHtml(j.matricula)}</td>
+          <td>${escapeHtml((j.matriculas&&j.matriculas.cliente)||'–')}</td>
+          <td>${escapeHtml(j.aberto_por)}</td>
+          <td>${escapeHtml(j.motivo)}</td>
+          <td style="max-width:220px;">${escapeHtml(j.observacao||'–')}</td>
+          <td>${fmtDateBR(j.aberto_em)}</td>
+          <td style="white-space:nowrap;">
+            <input type="text" class="in-gestora" data-id="${j.id}" placeholder="Seu nome" style="width:100px; margin-bottom:4px; padding:6px 8px; border:1px solid var(--border); border-radius:7px; font-size:12px; display:block;">
+            <button class="btn btn-approve btn-sm" data-approve="${j.id}" data-matricula="${j.matricula}" data-motivo="${escapeHtml(j.motivo)}">Aprovar</button>
+            <button class="btn btn-reject btn-sm" data-reject="${j.id}" data-matricula="${j.matricula}" data-motivo="${escapeHtml(j.motivo)}" style="margin-top:4px;">Rejeitar</button>
+          </td>
+        </tr>
+      `).join('');
+
+    tbP.querySelectorAll('[data-approve], [data-reject]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.dataset.approve || btn.dataset.reject;
+        const isApprove = !!btn.dataset.approve;
+        const matricula = btn.dataset.matricula;
+        const motivo = btn.dataset.motivo;
+        const row = btn.closest('tr');
+        const gestora = row.querySelector('.in-gestora').value.trim();
+        if(!gestora){ alert('Informe seu nome para validar.'); return; }
+        btn.disabled = true;
+
+        const novoStatusJust = isApprove ? 'aprovada' : 'rejeitada';
+        await apiPatch('/justificativas?id=eq.' + id, { status: novoStatusJust, validado_por: gestora, validado_em: new Date().toISOString() });
+
+        const novoStatusMat = isApprove ? 'cadastro_atualizado' : 'pendente_tratamento';
+        await apiPatch('/matriculas?matricula=eq.' + matricula, { status_fluxo: novoStatusMat });
+
+        logHistorico(matricula, gestora, isApprove ? 'Justificativa aprovada' : 'Justificativa rejeitada', motivo);
+
+        loadJustificativas();
+        loadHistoricoJust();
+      });
+    });
+  }
+
+  async function loadHistoricoJust(){
+    const tbH = document.getElementById('tbody-historico-just');
+    const hist = await apiGet('/justificativas?status=neq.aguardando_validacao&select=*&order=validado_em.desc&limit=20');
+    tbH.innerHTML = hist.length===0 ? '<tr class="empty-row"><td colspan="6">Ainda sem validações.</td></tr>' :
+      hist.map(j=>`<tr>
+        <td>${escapeHtml(j.matricula)}</td><td>${escapeHtml(j.aberto_por)}</td><td>${escapeHtml(j.motivo)}</td>
+        <td><span class="badge ${j.status==='aprovada'?'badge-atualizado':'badge-pendente'}">${j.status==='aprovada'?'Aprovada':'Rejeitada'}</span></td>
+        <td>${escapeHtml(j.validado_por||'–')}</td><td>${fmtDateBR(j.validado_em)}</td>
+      </tr>`).join('');
+  }
+
+  // ---------- init ----------
+  initSelects();
+  loadHistoricoJust();
+})();
+</script>
+</body>
+</html>
