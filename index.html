@@ -143,6 +143,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         Sou gestora
       </button>
+      <button data-role="geral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12.5" y="8" width="3" height="10"/><rect x="18" y="5" width="3" height="13"/></svg>
+        Visão geral
+      </button>
     </div>
   </div>
 </div>
@@ -213,6 +217,71 @@
         <table>
           <thead><tr><th>Matrícula</th><th>Executivo</th><th>Motivo</th><th>Resultado</th><th>Gestora</th><th>Data</th></tr></thead>
           <tbody id="tbody-historico-just"><tr class="empty-row"><td colspan="6">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VISÃO GERAL ================= -->
+  <section id="view-geral" class="view">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2>Indicadores gerais</h2>
+          <p class="sub">Visão consolidada de toda a base do projeto.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-export-semanal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
+          Exportar relatório semanal (CSV)
+        </button>
+      </div>
+      <div class="kpi-row" id="kpi-geral-row" style="margin-top:6px;">
+        <div class="kpi"><div class="label">Total da base</div><div class="value" id="g-total">0</div></div>
+        <div class="kpi leaf"><div class="label">Atualizadas</div><div class="value leaf" id="g-atualizadas">0</div></div>
+        <div class="kpi amber"><div class="label">Pendentes</div><div class="value amber" id="g-pendentes">0</div></div>
+        <div class="kpi"><div class="label">Aguard. execução OS</div><div class="value" id="g-aguardando-os">0</div></div>
+        <div class="kpi"><div class="label">Justificativas pendentes</div><div class="value" id="g-aguardando-just">0</div></div>
+        <div class="kpi leaf"><div class="label">% geral concluído</div><div class="value leaf" id="g-pct">0%</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Indicadores por pendência</h2>
+      <p class="sub">Quantidade de matrículas com cada tipo de dado pendente (considerando a regra de Prioridade 3).</p>
+      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+        <div class="kpi amber"><div class="label">E-mail pendente</div><div class="value amber" id="g-pend-email">0</div></div>
+        <div class="kpi amber"><div class="label">Celular pendente</div><div class="value amber" id="g-pend-celular">0</div></div>
+        <div class="kpi amber"><div class="label">CPF/CNPJ pendente</div><div class="value amber" id="g-pend-cpf">0</div></div>
+        <div class="kpi amber"><div class="label">CEP pendente</div><div class="value amber" id="g-pend-cep">0</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Indicadores especiais</h2>
+      <div class="kpi-row" style="grid-template-columns:repeat(2,1fr); max-width:460px;">
+        <div class="kpi"><div class="label">AO CONSUMIDOR</div><div class="value" id="g-ao-consumidor">0</div></div>
+        <div class="kpi"><div class="label">LOTE NÃO CADASTRADO</div><div class="value" id="g-lote-nao-cadastrado">0</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Por executivo</h2>
+      <p class="sub">Carteira, andamento e volume de ações de cada executivo.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Executivo</th><th>Carteira</th><th>Atualizadas</th><th>Pendentes</th><th>Aguard. OS</th><th>Aguard. justif.</th><th>% conclusão</th><th>OS abertas</th><th>Justificativas</th></tr></thead>
+          <tbody id="tbody-por-executivo"><tr class="empty-row"><td colspan="9">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Relatório semanal de evolução</h2>
+      <p class="sub">Ações registradas nos últimos 7 dias, por executivo — gerado na hora a partir dos dados atuais (não fica salvo).</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Executivo</th><th>OS abertas (7d)</th><th>Justificativas enviadas (7d)</th><th>Justificativas aprovadas (7d)</th><th>Concluídas na semana</th></tr></thead>
+          <tbody id="tbody-semanal"><tr class="empty-row"><td colspan="5">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -327,6 +396,7 @@
       btn.classList.add('active');
       document.getElementById('view-' + btn.dataset.role).classList.add('active');
       if(btn.dataset.role === 'gestora') loadJustificativas();
+      if(btn.dataset.role === 'geral') loadVisaoGeral();
     });
   });
 
@@ -522,6 +592,108 @@
         <td>${escapeHtml(j.validado_por||'–')}</td><td>${fmtDateBR(j.validado_em)}</td>
       </tr>`).join('');
   }
+
+  // ---------- visão geral ----------
+  let ULTIMA_SEMANAL = [];
+
+  function isEspecial(cliente, termos){
+    const c = (cliente||'').toUpperCase();
+    return termos.some(t => c.includes(t));
+  }
+
+  async function loadVisaoGeral(){
+    const tbExec = document.getElementById('tbody-por-executivo');
+    const tbSem = document.getElementById('tbody-semanal');
+    tbExec.innerHTML = '<tr class="empty-row"><td colspan="9">Carregando...</td></tr>';
+    tbSem.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
+
+    const headersRange = Object.assign({'Range':'0-19999'}, HEADERS);
+    const [todas, todasOS, todasJust] = await Promise.all([
+      fetch(SUPABASE_URL + '/matriculas?select=matricula,cliente,executivo,status_fluxo,pendente_email,pendente_celular,pendente_cpf_cnpj,pendente_cep', { headers: headersRange }).then(r=>r.json()).catch(()=>[]),
+      fetch(SUPABASE_URL + '/ordens_servico?select=matricula,aberto_por,aberto_em', { headers: headersRange }).then(r=>r.json()).catch(()=>[]),
+      fetch(SUPABASE_URL + '/justificativas?select=matricula,aberto_por,aberto_em,status,validado_por,validado_em', { headers: headersRange }).then(r=>r.json()).catch(()=>[])
+    ]);
+
+    // ---- KPIs gerais ----
+    const total = todas.length;
+    const atualizadas = todas.filter(r=>r.status_fluxo==='cadastro_atualizado').length;
+    const pendentes = todas.filter(r=>r.status_fluxo==='pendente_tratamento').length;
+    const aguardOS = todas.filter(r=>r.status_fluxo==='aguardando_execucao_os').length;
+    const aguardJust = todas.filter(r=>r.status_fluxo==='aguardando_validacao_justificativa').length;
+    document.getElementById('g-total').textContent = total;
+    document.getElementById('g-atualizadas').textContent = atualizadas;
+    document.getElementById('g-pendentes').textContent = pendentes;
+    document.getElementById('g-aguardando-os').textContent = aguardOS;
+    document.getElementById('g-aguardando-just').textContent = aguardJust;
+    document.getElementById('g-pct').textContent = total ? Math.round(atualizadas/total*100) + '%' : '0%';
+
+    // ---- pendências ----
+    document.getElementById('g-pend-email').textContent = todas.filter(r=>r.pendente_email).length;
+    document.getElementById('g-pend-celular').textContent = todas.filter(r=>r.pendente_celular).length;
+    document.getElementById('g-pend-cpf').textContent = todas.filter(r=>r.pendente_cpf_cnpj).length;
+    document.getElementById('g-pend-cep').textContent = todas.filter(r=>r.pendente_cep).length;
+
+    // ---- indicadores especiais (pelo nome do cliente) ----
+    document.getElementById('g-ao-consumidor').textContent = todas.filter(r=>isEspecial(r.cliente,['AO CONSUMIDOR'])).length;
+    document.getElementById('g-lote-nao-cadastrado').textContent = todas.filter(r=>isEspecial(r.cliente,['LOTE NAO CADASTRADO','LOTE NÃO CADASTRADO'])).length;
+
+    // ---- por executivo ----
+    const porExec = {};
+    todas.forEach(r=>{
+      const ex = r.executivo || '—';
+      if(!porExec[ex]) porExec[ex] = { carteira:0, atualizadas:0, pendentes:0, aguardOS:0, aguardJust:0, osCount:0, justCount:0 };
+      porExec[ex].carteira++;
+      if(r.status_fluxo==='cadastro_atualizado') porExec[ex].atualizadas++;
+      if(r.status_fluxo==='pendente_tratamento') porExec[ex].pendentes++;
+      if(r.status_fluxo==='aguardando_execucao_os') porExec[ex].aguardOS++;
+      if(r.status_fluxo==='aguardando_validacao_justificativa') porExec[ex].aguardJust++;
+    });
+    todasOS.forEach(os=>{ const ex = os.aberto_por || '—'; if(!porExec[ex]) porExec[ex] = {carteira:0,atualizadas:0,pendentes:0,aguardOS:0,aguardJust:0,osCount:0,justCount:0}; porExec[ex].osCount++; });
+    todasJust.forEach(j=>{ const ex = j.aberto_por || '—'; if(!porExec[ex]) porExec[ex] = {carteira:0,atualizadas:0,pendentes:0,aguardOS:0,aguardJust:0,osCount:0,justCount:0}; porExec[ex].justCount++; });
+
+    const execRows = Object.entries(porExec).sort((a,b)=>b[1].carteira - a[1].carteira);
+    tbExec.innerHTML = execRows.length===0 ? '<tr class="empty-row"><td colspan="9">Sem dados</td></tr>' :
+      execRows.map(([nome,v])=>{
+        const pct = v.carteira ? Math.round(v.atualizadas/v.carteira*100) : 0;
+        return `<tr>
+          <td>${escapeHtml(nome)}</td><td>${v.carteira}</td><td>${v.atualizadas}</td><td>${v.pendentes}</td>
+          <td>${v.aguardOS}</td><td>${v.aguardJust}</td><td>${pct}%</td><td>${v.osCount}</td><td>${v.justCount}</td>
+        </tr>`;
+      }).join('');
+
+    // ---- relatório semanal (últimos 7 dias) ----
+    const seteDiasAtras = new Date(Date.now() - 7*24*60*60*1000);
+    const porExecSemana = {};
+    function ensure(ex){ if(!porExecSemana[ex]) porExecSemana[ex] = { osAbertas:0, justEnviadas:0, justAprovadas:0 }; return porExecSemana[ex]; }
+    todasOS.forEach(os=>{ if(os.aberto_em && new Date(os.aberto_em) >= seteDiasAtras) ensure(os.aberto_por||'—').osAbertas++; });
+    todasJust.forEach(j=>{
+      if(j.aberto_em && new Date(j.aberto_em) >= seteDiasAtras) ensure(j.aberto_por||'—').justEnviadas++;
+      if(j.status==='aprovada' && j.validado_em && new Date(j.validado_em) >= seteDiasAtras) ensure(j.aberto_por||'—').justAprovadas++;
+    });
+
+    ULTIMA_SEMANAL = Object.entries(porExecSemana).map(([nome,v])=>({
+      executivo: nome, os_abertas_7d: v.osAbertas, justificativas_enviadas_7d: v.justEnviadas,
+      justificativas_aprovadas_7d: v.justAprovadas, concluidas_na_semana: v.justAprovadas
+    })).sort((a,b)=> (b.concluidas_na_semana - a.concluidas_na_semana));
+
+    tbSem.innerHTML = ULTIMA_SEMANAL.length===0 ? '<tr class="empty-row"><td colspan="5">Sem atividade nos últimos 7 dias.</td></tr>' :
+      ULTIMA_SEMANAL.map(r=>`<tr>
+        <td>${escapeHtml(r.executivo)}</td><td>${r.os_abertas_7d}</td><td>${r.justificativas_enviadas_7d}</td>
+        <td>${r.justificativas_aprovadas_7d}</td><td>${r.concluidas_na_semana}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('btn-export-semanal').addEventListener('click', ()=>{
+    if(ULTIMA_SEMANAL.length===0){ alert('Abra a Visão Geral primeiro para gerar o relatório.'); return; }
+    const header = ['Executivo','OS abertas (7d)','Justificativas enviadas (7d)','Justificativas aprovadas (7d)','Concluídas na semana'];
+    const rows = ULTIMA_SEMANAL.map(r=>[r.executivo, r.os_abertas_7d, r.justificativas_enviadas_7d, r.justificativas_aprovadas_7d, r.concluidas_na_semana]);
+    const csv = [header, ...rows].map(row => row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'relatorio_semanal_atualizacao_cadastral.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 1500);
+  });
 
   // ---------- init ----------
   initSelects();
