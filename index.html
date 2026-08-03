@@ -130,25 +130,49 @@
 </head>
 <body>
 
+<div id="login-screen" style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 55%, var(--navy-3) 100%); padding:20px;">
+  <div style="background:var(--surface); border-radius:18px; padding:32px; max-width:380px; width:100%; box-shadow:var(--shadow-lg);">
+    <div style="font-family:var(--font-display); font-weight:800; color:var(--navy); font-size:18px; margin-bottom:4px;">Atualização Cadastral</div>
+    <div style="font-size:13px; color:var(--text-mut); margin-bottom:22px;">Entre com seu e-mail e senha de acesso.</div>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="seu.nome@atualizacao-gc.local">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="Sua senha">
+    </div>
+    <button class="btn btn-primary" id="btn-login" style="width:100%; justify-content:center;">Entrar</button>
+    <div class="msg" id="msg-login" style="min-height:16px;"></div>
+  </div>
+</div>
+
+<div id="app-wrap" style="display:none;">
 <div class="hero-wrap">
+
   <div class="hero-inner">
     <div class="eyebrow"><span class="dot"></span>Águas do Rio · Grandes Clientes</div>
     <h1>Atualização Cadastral</h1>
     <p>Cada executivo trata sua própria carteira: abre uma OS quando o cliente atualiza os dados, ou registra uma justificativa quando não é possível. A gestora valida as justificativas — só isso conta como cadastro atualizado.</p>
     <div class="role-switch">
-      <button class="active" data-role="executivo">
+      <button class="active" data-role="executivo" id="btn-role-executivo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg>
         Sou executivo
       </button>
-      <button data-role="gestora">
+      <button data-role="gestora" id="btn-role-gestora">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         Sou gestora
       </button>
-      <button data-role="geral">
+      <button data-role="geral" id="btn-role-geral">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12.5" y="8" width="3" height="10"/><rect x="18" y="5" width="3" height="13"/></svg>
         Visão geral
       </button>
+      <button id="btn-logout" style="margin-left:auto;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sair
+      </button>
     </div>
+    <div id="usuario-logado" style="margin-top:10px; font-size:12.5px; color:#BFE0F5;"></div>
   </div>
 </div>
 
@@ -351,11 +375,16 @@
   </div>
 </div>
 
+</div>
+
 <script>
 (function(){
   const SUPABASE_URL = 'https://yidsjyfcuzytkejctqfp.supabase.co/rest/v1';
+  const SUPABASE_AUTH_URL = 'https://yidsjyfcuzytkejctqfp.supabase.co/auth/v1';
   const SUPABASE_KEY = 'sb_publishable_dJWDHA-YGrM3jIXgFBuk1w_ZxZSaHBQ';
-  const HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+  let HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+  let SESSAO = null; // { access_token, refresh_token, user }
+  let PERFIL = null; // { email, nome_executivo, role }
 
   const EXECUTIVOS = ['Alessandra dos Santos','Alessandro Silveira','Aline Nunes','Danielle Matta','Danillo Castro',
     'Diogo Garcia','Ediane Andrade','Ettiene Simoes','Fellipe Braga','Hagata Oliveira','Igor Coelho','Isabella Celio',
@@ -400,9 +429,9 @@
   }
 
   // ---------- role switch ----------
-  document.querySelectorAll('.role-switch button').forEach(btn=>{
+  document.querySelectorAll('.role-switch button[data-role]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.role-switch button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.role-switch button[data-role]').forEach(b=>b.classList.remove('active'));
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('view-' + btn.dataset.role).classList.add('active');
@@ -811,9 +840,100 @@
     }
   });
 
+  // ---------- autenticação ----------
+  async function fazerLogin(email, senha){
+    const res = await fetch(SUPABASE_AUTH_URL + '/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: senha })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.access_token) throw new Error(data.error_description || data.msg || 'E-mail ou senha inválidos.');
+    return data;
+  }
+
+  async function carregarPerfil(email){
+    const res = await fetch(SUPABASE_URL + '/perfis?email=eq.' + encodeURIComponent(email) + '&select=*', { headers: HEADERS });
+    if(!res.ok) throw new Error('Não foi possível carregar seu perfil de acesso.');
+    const rows = await res.json();
+    if(!rows || rows.length===0) throw new Error('Usuário sem perfil cadastrado. Fale com a gestora.');
+    return rows[0];
+  }
+
+  function salvarSessao(sessao){
+    try{ localStorage.setItem('cadastral_sessao', JSON.stringify(sessao)); }catch(e){}
+  }
+  function carregarSessaoSalva(){
+    try{ const raw = localStorage.getItem('cadastral_sessao'); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+  }
+  function limparSessao(){
+    try{ localStorage.removeItem('cadastral_sessao'); }catch(e){}
+  }
+
+  async function entrarNaApp(sessao, perfil){
+    SESSAO = sessao; PERFIL = perfil;
+    HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + sessao.access_token, 'Content-Type': 'application/json' };
+
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-wrap').style.display = 'block';
+    document.getElementById('usuario-logado').textContent =
+      (perfil.role === 'gestora' ? 'Gestora' : perfil.nome_executivo) + ' · ' + perfil.email;
+
+    if(perfil.role === 'gestora'){
+      document.querySelectorAll('.role-switch button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById('btn-role-gestora').classList.add('active');
+      document.getElementById('view-gestora').classList.add('active');
+      loadJustificativas();
+    } else {
+      document.getElementById('btn-role-gestora').style.display = 'none';
+      document.getElementById('btn-role-geral').style.display = 'none';
+      const sel = document.getElementById('sel-executivo');
+      sel.innerHTML = `<option value="${escapeHtml(perfil.nome_executivo)}">${escapeHtml(perfil.nome_executivo)}</option>`;
+      sel.disabled = true;
+      currentExecutivo = perfil.nome_executivo;
+      document.getElementById('exec-content').style.display = 'block';
+      document.getElementById('tbody-carteira').innerHTML = '<tr class="empty-row"><td colspan="6">Carregando...</td></tr>';
+      CARTEIRA = await apiGet('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
+      renderCarteira();
+    }
+  }
+
+  document.getElementById('btn-login').addEventListener('click', async ()=>{
+    const email = document.getElementById('login-email').value.trim();
+    const senha = document.getElementById('login-senha').value;
+    const msg = document.getElementById('msg-login');
+    if(!email || !senha){ msg.style.color='var(--rose)'; msg.textContent='Preencha e-mail e senha.'; return; }
+    msg.style.color='var(--text-mut)'; msg.textContent='Entrando...';
+    try{
+      const sessao = await fazerLogin(email, senha);
+      HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + sessao.access_token, 'Content-Type': 'application/json' };
+      const perfil = await carregarPerfil(email);
+      salvarSessao({ sessao, perfil });
+      await entrarNaApp(sessao, perfil);
+    }catch(err){
+      msg.style.color='var(--rose)'; msg.textContent = err.message || 'Erro ao entrar.';
+    }
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', ()=>{
+    limparSessao();
+    location.reload();
+  });
+
   // ---------- init ----------
-  initSelects();
-  loadHistoricoJust();
+  (async function initAuth(){
+    initSelects();
+    const salva = carregarSessaoSalva();
+    if(salva && salva.sessao && salva.perfil){
+      try{
+        await entrarNaApp(salva.sessao, salva.perfil);
+        loadHistoricoJust();
+        return;
+      }catch(e){ limparSessao(); }
+    }
+    // sem sessão válida: fica na tela de login
+  })();
 })();
 </script>
 </body>
