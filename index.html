@@ -650,13 +650,16 @@
     document.getElementById('g-pendentes').textContent = pendentes;
     document.getElementById('g-aguardando-os').textContent = aguardOS;
     document.getElementById('g-aguardando-just').textContent = aguardJust;
-    document.getElementById('g-pct').textContent = total ? Math.round(atualizadas/total*100) + '%' : '0%';
+    document.getElementById('g-pct').textContent = total ? (atualizadas/total*100).toFixed(1).replace('.',',') + '%' : '0%';
 
     // ---- pendências ----
-    document.getElementById('g-pend-email').textContent = todas.filter(r=>r.pendente_email).length;
-    document.getElementById('g-pend-celular').textContent = todas.filter(r=>r.pendente_celular).length;
-    document.getElementById('g-pend-cpf').textContent = todas.filter(r=>r.pendente_cpf_cnpj).length;
-    document.getElementById('g-pend-cep').textContent = todas.filter(r=>r.pendente_cep).length;
+    // Regra oficial: só contam matrículas cujo status_fluxo é pendente_tratamento
+    // (após a regra de reclassificação, essa é exatamente a "nova população de pendentes")
+    const populacaoPendente = todas.filter(r=>r.status_fluxo==='pendente_tratamento');
+    document.getElementById('g-pend-email').textContent = populacaoPendente.filter(r=>r.pendente_email).length;
+    document.getElementById('g-pend-celular').textContent = populacaoPendente.filter(r=>r.pendente_celular).length;
+    document.getElementById('g-pend-cpf').textContent = populacaoPendente.filter(r=>r.pendente_cpf_cnpj).length;
+    document.getElementById('g-pend-cep').textContent = populacaoPendente.filter(r=>r.pendente_cep).length;
 
     // ---- indicadores especiais (pelo nome do cliente) ----
     document.getElementById('g-ao-consumidor').textContent = todas.filter(r=>isEspecial(r.cliente,['AO CONSUMIDOR'])).length;
