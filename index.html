@@ -212,6 +212,18 @@
             <option value="aguardando_validacao_justificativa">Aguardando validação</option>
             <option value="cadastro_atualizado">Cadastro atualizado</option>
           </select>
+          <select id="f-pendencia">
+            <option value="">Todas as pendências</option>
+            <option value="pendente_email">E-mail</option>
+            <option value="pendente_celular">Celular</option>
+            <option value="pendente_cpf_cnpj">CPF/CNPJ</option>
+            <option value="pendente_cep">CEP</option>
+          </select>
+          <select id="f-prioridade">
+            <option value="">Todas as prioridades</option>
+            <option value="PRIORIDADE 1">Prioridade 1</option>
+            <option value="PRIORIDADE 2">Prioridade 2</option>
+          </select>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -452,6 +464,8 @@
 
   document.getElementById('busca-matricula').addEventListener('input', renderCarteira);
   document.getElementById('f-status').addEventListener('change', renderCarteira);
+  document.getElementById('f-pendencia').addEventListener('change', renderCarteira);
+  document.getElementById('f-prioridade').addEventListener('change', renderCarteira);
 
   const STATUS_LABEL = {
     pendente_tratamento: '<span class="badge badge-pendente">⏳ Pendente</span>',
@@ -473,9 +487,13 @@
   function renderCarteira(){
     const busca = (document.getElementById('busca-matricula').value||'').toLowerCase();
     const fStatus = document.getElementById('f-status').value;
+    const fPendencia = document.getElementById('f-pendencia').value;
+    const fPrioridade = document.getElementById('f-prioridade').value;
     const filtered = CARTEIRA.filter(r=>
       (!busca || String(r.matricula).includes(busca) || (r.cliente||'').toLowerCase().includes(busca)) &&
-      (!fStatus || r.status_fluxo === fStatus)
+      (!fStatus || r.status_fluxo === fStatus) &&
+      (!fPendencia || r[fPendencia] === true) &&
+      (!fPrioridade || (r.prioridade||'').trim().toUpperCase() === fPrioridade)
     );
 
     document.getElementById('kpi-total').textContent = CARTEIRA.length;
