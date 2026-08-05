@@ -345,16 +345,16 @@
 
     <div class="card">
       <h2>Indicadores financeiros</h2>
-      <p class="sub">Média de faturamento (Média Fat) das matrículas do projeto.</p>
+      <p class="sub">Soma de Média Fat das matrículas do projeto.</p>
       <div class="kpi-row" style="margin-bottom:16px;">
-        <div class="kpi leaf"><div class="label">Média faturada — total do projeto</div><div class="value leaf" id="g-media-fat-total">R$ 0</div></div>
+        <div class="kpi leaf"><div class="label">Soma Média Fat — total do projeto</div><div class="value leaf" id="g-media-fat-total">R$ 0</div></div>
       </div>
       <div class="two-col">
         <div>
           <h3 style="font-size:13px; font-weight:700; color:var(--navy); margin:0 0 8px;">Por segmento</h3>
           <div style="overflow-x:auto;">
             <table>
-              <thead><tr><th>Segmento</th><th>Qtd.</th><th>Média Fat (R$)</th></tr></thead>
+              <thead><tr><th>Segmento</th><th>Qtd.</th><th>Soma Média Fat (R$)</th></tr></thead>
               <tbody id="tbody-fat-segmento"><tr class="empty-row"><td colspan="3">Carregando...</td></tr></tbody>
             </table>
           </div>
@@ -363,7 +363,7 @@
           <h3 style="font-size:13px; font-weight:700; color:var(--navy); margin:0 0 8px;">Por status</h3>
           <div style="overflow-x:auto;">
             <table>
-              <thead><tr><th>Status</th><th>Qtd.</th><th>Média Fat (R$)</th></tr></thead>
+              <thead><tr><th>Status</th><th>Qtd.</th><th>Soma Média Fat (R$)</th></tr></thead>
               <tbody id="tbody-fat-status"><tr class="empty-row"><td colspan="3">Carregando...</td></tr></tbody>
             </table>
           </div>
@@ -797,23 +797,21 @@
     renderAgrupado('tbody-por-superintendencia', agruparPorStatus(todas, 'superintendencia'));
 
     // ---- indicadores financeiros (média faturada) ----
-    function media(lista){
-      const comValor = lista.filter(r=>r.media_fat!=null && !isNaN(r.media_fat));
-      if(comValor.length===0) return 0;
-      return comValor.reduce((s,r)=>s+Number(r.media_fat),0) / comValor.length;
+    function somaFat(lista){
+      return lista.reduce((s,r)=> s + (r.media_fat!=null && !isNaN(r.media_fat) ? Number(r.media_fat) : 0), 0);
     }
-    document.getElementById('g-media-fat-total').textContent = fmtR$fat(media(todas));
+    document.getElementById('g-media-fat-total').textContent = fmtR$fat(somaFat(todas));
 
     const porSegmento = {};
     todas.forEach(r=>{ const k = r.carteira || '—'; if(!porSegmento[k]) porSegmento[k]=[]; porSegmento[k].push(r); });
-    const linhasSegmento = Object.entries(porSegmento).map(([nome,lista])=>({ nome, qtd:lista.length, media:media(lista) })).sort((a,b)=>b.qtd-a.qtd);
+    const linhasSegmento = Object.entries(porSegmento).map(([nome,lista])=>({ nome, qtd:lista.length, media:somaFat(lista) })).sort((a,b)=>b.qtd-a.qtd);
     document.getElementById('tbody-fat-segmento').innerHTML = linhasSegmento.length===0 ? '<tr class="empty-row"><td colspan="3">Sem dados</td></tr>' :
       linhasSegmento.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.qtd}</td><td>${fmtR$fat(l.media)}</td></tr>`).join('');
 
     const STATUS_LABEL_FAT = { pendente_tratamento:'Pendente', aguardando_execucao_os:'Aguard. OS', aguardando_validacao_justificativa:'Aguard. validação', cadastro_atualizado:'Atualizado' };
     const porStatus = {};
     todas.forEach(r=>{ const k = r.status_fluxo || '—'; if(!porStatus[k]) porStatus[k]=[]; porStatus[k].push(r); });
-    const linhasStatus = Object.entries(porStatus).map(([status,lista])=>({ nome: STATUS_LABEL_FAT[status]||status, qtd:lista.length, media:media(lista) })).sort((a,b)=>b.qtd-a.qtd);
+    const linhasStatus = Object.entries(porStatus).map(([status,lista])=>({ nome: STATUS_LABEL_FAT[status]||status, qtd:lista.length, media:somaFat(lista) })).sort((a,b)=>b.qtd-a.qtd);
     document.getElementById('tbody-fat-status').innerHTML = linhasStatus.length===0 ? '<tr class="empty-row"><td colspan="3">Sem dados</td></tr>' :
       linhasStatus.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.qtd}</td><td>${fmtR$fat(l.media)}</td></tr>`).join('');
 
