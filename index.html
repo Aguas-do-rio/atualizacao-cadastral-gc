@@ -167,6 +167,14 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12.5" y="8" width="3" height="10"/><rect x="18" y="5" width="3" height="13"/></svg>
         Visão geral
       </button>
+      <button data-role="gerencial" id="btn-role-gerencial">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Visão gerencial
+      </button>
+      <button data-role="base-geral" id="btn-role-base-geral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+        Base geral
+      </button>
       <button id="btn-logout" style="margin-left:auto;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
         Sair
@@ -272,15 +280,9 @@
   <!-- ================= VISÃO GERAL ================= -->
   <section id="view-geral" class="view">
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
-        <div>
-          <h2>Indicadores gerais</h2>
-          <p class="sub">Visão consolidada de toda a base do projeto.</p>
-        </div>
-        <button class="btn btn-ghost btn-sm" id="btn-export-semanal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
-          Exportar relatório semanal (CSV)
-        </button>
+      <div>
+        <h2>Indicadores gerais</h2>
+        <p class="sub">Visão consolidada de toda a base do projeto.</p>
       </div>
       <div class="kpi-row" id="kpi-geral-row" style="margin-top:6px;">
         <div class="kpi"><div class="label">Total da base</div><div class="value" id="g-total">0</div></div>
@@ -305,19 +307,11 @@
 
     <div class="card">
       <h2>Indicadores especiais</h2>
-      <div class="kpi-row" style="grid-template-columns:repeat(2,1fr); max-width:460px;">
-        <div class="kpi"><div class="label">AO CONSUMIDOR</div><div class="value" id="g-ao-consumidor">0</div></div>
-        <div class="kpi"><div class="label">LOTE NÃO CADASTRADO</div><div class="value" id="g-lote-nao-cadastrado">0</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Por executivo</h2>
-      <p class="sub">Carteira, andamento e volume de ações de cada executivo.</p>
+      <p class="sub">"AO CONSUMIDOR" e "LOTE NÃO CADASTRADO" — sem nome de cliente identificável, quebrado por curva.</p>
       <div style="overflow-x:auto;">
         <table>
-          <thead><tr><th>Executivo</th><th>Carteira</th><th>Atualizadas</th><th>Pendentes</th><th>Aguard. OS</th><th>Aguard. justif.</th><th>% conclusão</th><th>OS abertas</th><th>Justificativas</th></tr></thead>
-          <tbody id="tbody-por-executivo"><tr class="empty-row"><td colspan="9">Carregando...</td></tr></tbody>
+          <thead><tr><th>Curva</th><th>AO CONSUMIDOR</th><th>LOTE NÃO CADASTRADO</th></tr></thead>
+          <tbody id="tbody-especiais-curva"><tr class="empty-row"><td colspan="3">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -334,11 +328,36 @@
     </div>
 
     <div class="card">
-      <h2>Por superintendência</h2>
+      <h2>Dados faltantes por curva</h2>
+      <p class="sub">Considerando só as matrículas pendentes, qual dado falta em cada curva — inclui "Nome" (Ao Consumidor / Lote não cadastrado) como um tipo de dado faltante.</p>
       <div style="overflow-x:auto;">
         <table>
-          <thead><tr><th>Superintendência</th><th>Total</th><th>Atualizadas</th><th>Pendentes</th><th>Aguard. OS</th><th>% conclusão</th></tr></thead>
-          <tbody id="tbody-por-superintendencia"><tr class="empty-row"><td colspan="6">Carregando...</td></tr></tbody>
+          <thead><tr><th>Curva</th><th>Pendentes (total)</th><th>Nome</th><th>E-mail</th><th>Celular</th><th>CPF/CNPJ</th><th>CEP</th></tr></thead>
+          <tbody id="tbody-faltantes-curva"><tr class="empty-row"><td colspan="7">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Por superintendência</h2>
+      <p class="sub">Filtre por curva e/ou status para refinar o quantitativo e a visão financeira por superintendência.</p>
+      <div class="toolbar" style="margin-bottom:14px;">
+        <select id="f-sup-curva">
+          <option value="">Todas as curvas</option>
+          <option>Estrategico</option><option>Cliente A</option><option>Cliente B</option><option>Cliente C</option><option>Cliente D</option>
+        </select>
+        <select id="f-sup-status">
+          <option value="">Todos os status</option>
+          <option value="pendente_tratamento">Pendente</option>
+          <option value="aguardando_execucao_os">Aguard. OS</option>
+          <option value="aguardando_validacao_justificativa">Aguard. validação</option>
+          <option value="cadastro_atualizado">Atualizado</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Superintendência</th><th>Total</th><th>Atualizadas</th><th>Pendentes</th><th>Aguard. OS</th><th>% conclusão</th><th>Soma Média Fat (R$)</th></tr></thead>
+          <tbody id="tbody-por-superintendencia"><tr class="empty-row"><td colspan="7">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -370,6 +389,28 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- ================= VISÃO GERENCIAL ================= -->
+  <section id="view-gerencial" class="view">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2>Por executivo</h2>
+          <p class="sub">Carteira, andamento e volume de ações de cada executivo.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-export-semanal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
+          Exportar relatório semanal (CSV)
+        </button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Executivo</th><th>Carteira</th><th>Atualizadas</th><th>Pendentes</th><th>Aguard. OS</th><th>Aguard. justif.</th><th>% conclusão</th><th>OS abertas</th><th>Justificativas</th></tr></thead>
+          <tbody id="tbody-por-executivo"><tr class="empty-row"><td colspan="9">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
 
     <div class="card">
       <h2>Relatório semanal de evolução</h2>
@@ -378,6 +419,48 @@
         <table>
           <thead><tr><th>Executivo</th><th>OS abertas (7d)</th><th>Justificativas enviadas (7d)</th><th>Justificativas aprovadas (7d)</th><th>Concluídas na semana</th></tr></thead>
           <tbody id="tbody-semanal"><tr class="empty-row"><td colspan="5">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Relatório mensal de evolução</h2>
+      <p class="sub">Ações registradas nos últimos 30 dias, por executivo — mesma lógica do relatório semanal, com janela maior.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Executivo</th><th>OS abertas (30d)</th><th>Justificativas enviadas (30d)</th><th>Justificativas aprovadas (30d)</th><th>Concluídas no mês</th></tr></thead>
+          <tbody id="tbody-mensal"><tr class="empty-row"><td colspan="5">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BASE GERAL ================= -->
+  <section id="view-base-geral" class="view">
+    <div class="card">
+      <h2>Base geral de matrículas</h2>
+      <p class="sub">Todas as matrículas do projeto, com filtros por segmento, superintendência, curva e status.</p>
+      <div class="toolbar" style="margin-bottom:14px;">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="bg-busca" placeholder="Buscar por matrícula ou nome...">
+        </div>
+        <select id="bg-segmento"><option value="">Todos os segmentos</option></select>
+        <select id="bg-superintendencia"><option value="">Todas as superintendências</option></select>
+        <select id="bg-curva"><option value="">Todas as curvas</option></select>
+        <select id="bg-status">
+          <option value="">Todos os status</option>
+          <option value="pendente_tratamento">Pendente</option>
+          <option value="aguardando_execucao_os">Aguard. OS</option>
+          <option value="aguardando_validacao_justificativa">Aguard. validação</option>
+          <option value="cadastro_atualizado">Atualizado</option>
+        </select>
+      </div>
+      <div style="font-size:12.5px; color:var(--text-mut); margin-bottom:10px;" id="bg-contador">Carregando...</div>
+      <div style="overflow-x:auto; max-height:600px; overflow-y:auto;">
+        <table>
+          <thead><tr><th>Matrícula</th><th>Nome</th><th>Segmento</th><th>Superintendência</th><th>Curva</th><th class="num">Faturamento (R$)</th><th>Status</th></tr></thead>
+          <tbody id="tbody-base-geral"><tr class="empty-row"><td colspan="7">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -499,6 +582,8 @@
       document.getElementById('view-' + btn.dataset.role).classList.add('active');
       if(btn.dataset.role === 'gestora') loadJustificativas();
       if(btn.dataset.role === 'geral') loadVisaoGeral();
+      if(btn.dataset.role === 'gerencial') loadVisaoGerencial();
+      if(btn.dataset.role === 'base-geral') loadBaseGeral();
     });
   });
 
@@ -724,17 +809,30 @@
     return all;
   }
 
-  async function loadVisaoGeral(){
-    const tbExec = document.getElementById('tbody-por-executivo');
-    const tbSem = document.getElementById('tbody-semanal');
-    tbExec.innerHTML = '<tr class="empty-row"><td colspan="9">Carregando...</td></tr>';
-    tbSem.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
-
-    const [todas, todasOS, todasJust] = await Promise.all([
+  async function fetchDadosGerais(){
+    return Promise.all([
       fetchAllPages('/matriculas?select=matricula,cliente,executivo,status_fluxo,pendente_email,pendente_celular,pendente_cpf_cnpj,pendente_cep,curva,superintendencia,carteira,media_fat'),
       fetchAllPages('/ordens_servico?select=matricula,aberto_por,aberto_em'),
       fetchAllPages('/justificativas?select=matricula,aberto_por,aberto_em,status,validado_por,validado_em')
     ]);
+  }
+
+  function somaFat(lista){
+    return lista.reduce((s,r)=> s + (r.media_fat!=null && !isNaN(r.media_fat) ? Number(r.media_fat) : 0), 0);
+  }
+
+  const ORDEM_CURVA = ['Estrategico','Cliente A','Cliente B','Cliente C','Cliente D'];
+  function ordenarPorCurva(linhas, chaveNome){
+    return linhas.sort((a,b)=>{
+      const ia = ORDEM_CURVA.indexOf(a[chaveNome]), ib = ORDEM_CURVA.indexOf(b[chaveNome]);
+      if(ia===-1 && ib===-1) return 0;
+      if(ia===-1) return 1; if(ib===-1) return -1;
+      return ia-ib;
+    });
+  }
+
+  async function loadVisaoGeral(){
+    const [todas] = await fetchDadosGerais();
 
     // ---- KPIs gerais ----
     const total = todas.length;
@@ -750,56 +848,79 @@
     document.getElementById('g-pct').textContent = total ? (atualizadas/total*100).toFixed(1).replace('.',',') + '%' : '0%';
 
     // ---- pendências ----
-    // Regra oficial: só contam matrículas cujo status_fluxo é pendente_tratamento
-    // (após a regra de reclassificação, essa é exatamente a "nova população de pendentes")
     const populacaoPendente = todas.filter(r=>r.status_fluxo==='pendente_tratamento');
     document.getElementById('g-pend-email').textContent = populacaoPendente.filter(r=>r.pendente_email).length;
     document.getElementById('g-pend-celular').textContent = populacaoPendente.filter(r=>r.pendente_celular).length;
     document.getElementById('g-pend-cpf').textContent = populacaoPendente.filter(r=>r.pendente_cpf_cnpj).length;
     document.getElementById('g-pend-cep').textContent = populacaoPendente.filter(r=>r.pendente_cep).length;
 
-    // ---- indicadores especiais (pelo nome do cliente) ----
-    document.getElementById('g-ao-consumidor').textContent = todas.filter(r=>isEspecial(r.cliente,['AO CONSUMIDOR'])).length;
-    document.getElementById('g-lote-nao-cadastrado').textContent = todas.filter(r=>isEspecial(r.cliente,['LOTE NAO CADASTRADO','LOTE NÃO CADASTRADO'])).length;
+    // ---- indicadores especiais por curva ----
+    function ehAoConsumidor(r){ return isEspecial(r.cliente,['AO CONSUMIDOR']); }
+    function ehLoteNaoCadastrado(r){ return isEspecial(r.cliente,['LOTE NAO CADASTRADO','LOTE NÃO CADASTRADO']); }
+    const especiaisPorCurva = {};
+    todas.forEach(r=>{
+      const k = r.curva || '—';
+      if(!especiaisPorCurva[k]) especiaisPorCurva[k] = { aoConsumidor:0, loteNaoCadastrado:0 };
+      if(ehAoConsumidor(r)) especiaisPorCurva[k].aoConsumidor++;
+      if(ehLoteNaoCadastrado(r)) especiaisPorCurva[k].loteNaoCadastrado++;
+    });
+    const linhasEspeciais = ordenarPorCurva(Object.entries(especiaisPorCurva).map(([nome,v])=>({nome,...v})), 'nome');
+    document.getElementById('tbody-especiais-curva').innerHTML = linhasEspeciais.length===0 ? '<tr class="empty-row"><td colspan="3">Sem dados</td></tr>' :
+      linhasEspeciais.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.aoConsumidor}</td><td>${l.loteNaoCadastrado}</td></tr>`).join('');
 
     // ---- agrupamento genérico por status (reutilizado para curva e superintendência) ----
     function agruparPorStatus(lista, chave){
       const mapa = {};
       lista.forEach(r=>{
         const k = r[chave] || '—';
-        if(!mapa[k]) mapa[k] = { total:0, atualizadas:0, pendentes:0, aguardOS:0 };
+        if(!mapa[k]) mapa[k] = { total:0, atualizadas:0, pendentes:0, aguardOS:0, fat:0 };
         mapa[k].total++;
         if(r.status_fluxo==='cadastro_atualizado') mapa[k].atualizadas++;
         if(r.status_fluxo==='pendente_tratamento') mapa[k].pendentes++;
         if(r.status_fluxo==='aguardando_execucao_os') mapa[k].aguardOS++;
+        mapa[k].fat += (r.media_fat!=null && !isNaN(r.media_fat) ? Number(r.media_fat) : 0);
       });
       return Object.entries(mapa).map(([nome,v])=>({
-        nome, total:v.total, atualizadas:v.atualizadas, pendentes:v.pendentes, aguardOS:v.aguardOS,
+        nome, total:v.total, atualizadas:v.atualizadas, pendentes:v.pendentes, aguardOS:v.aguardOS, fat:v.fat,
         pct: v.total ? (v.atualizadas/v.total*100) : 0
       })).sort((a,b)=>b.total-a.total);
     }
-    function renderAgrupado(tbodyId, linhas){
-      document.getElementById(tbodyId).innerHTML = linhas.length===0 ? '<tr class="empty-row"><td colspan="6">Sem dados</td></tr>' :
-        linhas.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.total}</td><td>${l.atualizadas}</td><td>${l.pendentes}</td><td>${l.aguardOS}</td><td>${l.pct.toFixed(0)}%</td></tr>`).join('');
+    function renderAgrupado(tbodyId, linhas, comFat){
+      document.getElementById(tbodyId).innerHTML = linhas.length===0 ? `<tr class="empty-row"><td colspan="${comFat?7:6}">Sem dados</td></tr>` :
+        linhas.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.total}</td><td>${l.atualizadas}</td><td>${l.pendentes}</td><td>${l.aguardOS}</td><td>${l.pct.toFixed(0)}%</td>${comFat?`<td>${fmtR$fat(l.fat)}</td>`:''}</tr>`).join('');
     }
 
     // ---- por curva ----
-    const ORDEM_CURVA = ['Estrategico','Cliente A','Cliente B','Cliente C','Cliente D'];
-    const porCurva = agruparPorStatus(todas, 'curva').sort((a,b)=>{
-      const ia = ORDEM_CURVA.indexOf(a.nome), ib = ORDEM_CURVA.indexOf(b.nome);
-      if(ia===-1 && ib===-1) return 0;
-      if(ia===-1) return 1; if(ib===-1) return -1;
-      return ia-ib;
+    renderAgrupado('tbody-por-curva', ordenarPorCurva(agruparPorStatus(todas, 'curva'), 'nome'));
+
+    // ---- dados faltantes por curva (só pendentes) ----
+    const faltantesPorCurva = {};
+    populacaoPendente.forEach(r=>{
+      const k = r.curva || '—';
+      if(!faltantesPorCurva[k]) faltantesPorCurva[k] = { total:0, semNome:0, email:0, celular:0, cpf:0, cep:0 };
+      faltantesPorCurva[k].total++;
+      if(ehAoConsumidor(r) || ehLoteNaoCadastrado(r)) faltantesPorCurva[k].semNome++;
+      if(r.pendente_email) faltantesPorCurva[k].email++;
+      if(r.pendente_celular) faltantesPorCurva[k].celular++;
+      if(r.pendente_cpf_cnpj) faltantesPorCurva[k].cpf++;
+      if(r.pendente_cep) faltantesPorCurva[k].cep++;
     });
-    renderAgrupado('tbody-por-curva', porCurva);
+    const linhasFaltantes = ordenarPorCurva(Object.entries(faltantesPorCurva).map(([curvaNome,v])=>({nome:curvaNome,...v})), 'nome');
+    document.getElementById('tbody-faltantes-curva').innerHTML = linhasFaltantes.length===0 ? '<tr class="empty-row"><td colspan="7">Sem pendentes</td></tr>' :
+      linhasFaltantes.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.total}</td><td>${l.semNome}</td><td>${l.email}</td><td>${l.celular}</td><td>${l.cpf}</td><td>${l.cep}</td></tr>`).join('');
 
-    // ---- por superintendência ----
-    renderAgrupado('tbody-por-superintendencia', agruparPorStatus(todas, 'superintendencia'));
-
-    // ---- indicadores financeiros (média faturada) ----
-    function somaFat(lista){
-      return lista.reduce((s,r)=> s + (r.media_fat!=null && !isNaN(r.media_fat) ? Number(r.media_fat) : 0), 0);
+    // ---- por superintendência (com filtros de curva/status) ----
+    function renderSuperintendencia(){
+      const fCurva = document.getElementById('f-sup-curva').value;
+      const fStatus = document.getElementById('f-sup-status').value;
+      const filtradas = todas.filter(r => (!fCurva || r.curva===fCurva) && (!fStatus || r.status_fluxo===fStatus));
+      renderAgrupado('tbody-por-superintendencia', agruparPorStatus(filtradas, 'superintendencia'), true);
     }
+    renderSuperintendencia();
+    document.getElementById('f-sup-curva').onchange = renderSuperintendencia;
+    document.getElementById('f-sup-status').onchange = renderSuperintendencia;
+
+    // ---- indicadores financeiros ----
     document.getElementById('g-media-fat-total').textContent = fmtR$fat(somaFat(todas));
 
     const porSegmento = {};
@@ -814,20 +935,32 @@
     const linhasStatus = Object.entries(porStatus).map(([status,lista])=>({ nome: STATUS_LABEL_FAT[status]||status, qtd:lista.length, media:somaFat(lista) })).sort((a,b)=>b.qtd-a.qtd);
     document.getElementById('tbody-fat-status').innerHTML = linhasStatus.length===0 ? '<tr class="empty-row"><td colspan="3">Sem dados</td></tr>' :
       linhasStatus.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.qtd}</td><td>${fmtR$fat(l.media)}</td></tr>`).join('');
+  }
+
+  async function loadVisaoGerencial(){
+    const tbExec = document.getElementById('tbody-por-executivo');
+    const tbSem = document.getElementById('tbody-semanal');
+    const tbMes = document.getElementById('tbody-mensal');
+    tbExec.innerHTML = '<tr class="empty-row"><td colspan="9">Carregando...</td></tr>';
+    tbSem.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
+    tbMes.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
+
+    const [todas, todasOS, todasJust] = await fetchDadosGerais();
 
     // ---- por executivo ----
     const porExec = {};
+    function novoExec(){ return {carteira:0,atualizadas:0,pendentes:0,aguardOS:0,aguardJust:0,osCount:0,justCount:0}; }
     todas.forEach(r=>{
       const ex = r.executivo || '—';
-      if(!porExec[ex]) porExec[ex] = { carteira:0, atualizadas:0, pendentes:0, aguardOS:0, aguardJust:0, osCount:0, justCount:0 };
+      if(!porExec[ex]) porExec[ex] = novoExec();
       porExec[ex].carteira++;
       if(r.status_fluxo==='cadastro_atualizado') porExec[ex].atualizadas++;
       if(r.status_fluxo==='pendente_tratamento') porExec[ex].pendentes++;
       if(r.status_fluxo==='aguardando_execucao_os') porExec[ex].aguardOS++;
       if(r.status_fluxo==='aguardando_validacao_justificativa') porExec[ex].aguardJust++;
     });
-    todasOS.forEach(os=>{ const ex = os.aberto_por || '—'; if(!porExec[ex]) porExec[ex] = {carteira:0,atualizadas:0,pendentes:0,aguardOS:0,aguardJust:0,osCount:0,justCount:0}; porExec[ex].osCount++; });
-    todasJust.forEach(j=>{ const ex = j.aberto_por || '—'; if(!porExec[ex]) porExec[ex] = {carteira:0,atualizadas:0,pendentes:0,aguardOS:0,aguardJust:0,osCount:0,justCount:0}; porExec[ex].justCount++; });
+    todasOS.forEach(os=>{ const ex = os.aberto_por || '—'; if(!porExec[ex]) porExec[ex] = novoExec(); porExec[ex].osCount++; });
+    todasJust.forEach(j=>{ const ex = j.aberto_por || '—'; if(!porExec[ex]) porExec[ex] = novoExec(); porExec[ex].justCount++; });
 
     const execRows = Object.entries(porExec).sort((a,b)=>b[1].carteira - a[1].carteira);
     tbExec.innerHTML = execRows.length===0 ? '<tr class="empty-row"><td colspan="9">Sem dados</td></tr>' :
@@ -839,25 +972,83 @@
         </tr>`;
       }).join('');
 
-    // ---- relatório semanal (últimos 7 dias) ----
-    const seteDiasAtras = new Date(Date.now() - 7*24*60*60*1000);
-    const porExecSemana = {};
-    function ensure(ex){ if(!porExecSemana[ex]) porExecSemana[ex] = { osAbertas:0, justEnviadas:0, justAprovadas:0 }; return porExecSemana[ex]; }
-    todasOS.forEach(os=>{ if(os.aberto_em && new Date(os.aberto_em) >= seteDiasAtras) ensure(os.aberto_por||'—').osAbertas++; });
-    todasJust.forEach(j=>{
-      if(j.aberto_em && new Date(j.aberto_em) >= seteDiasAtras) ensure(j.aberto_por||'—').justEnviadas++;
-      if(j.status==='aprovada' && j.validado_em && new Date(j.validado_em) >= seteDiasAtras) ensure(j.aberto_por||'—').justAprovadas++;
-    });
+    // ---- relatório por período (usado pro semanal e mensal) ----
+    function relatorioPeriodo(dias){
+      const limite = new Date(Date.now() - dias*24*60*60*1000);
+      const porExecPeriodo = {};
+      function ensure(ex){ if(!porExecPeriodo[ex]) porExecPeriodo[ex] = { osAbertas:0, justEnviadas:0, justAprovadas:0 }; return porExecPeriodo[ex]; }
+      todasOS.forEach(os=>{ if(os.aberto_em && new Date(os.aberto_em) >= limite) ensure(os.aberto_por||'—').osAbertas++; });
+      todasJust.forEach(j=>{
+        if(j.aberto_em && new Date(j.aberto_em) >= limite) ensure(j.aberto_por||'—').justEnviadas++;
+        if(j.status==='aprovada' && j.validado_em && new Date(j.validado_em) >= limite) ensure(j.aberto_por||'—').justAprovadas++;
+      });
+      return Object.entries(porExecPeriodo).map(([nome,v])=>({
+        executivo: nome, os_abertas: v.osAbertas, justificativas_enviadas: v.justEnviadas,
+        justificativas_aprovadas: v.justAprovadas, concluidas: v.justAprovadas
+      })).sort((a,b)=> b.concluidas - a.concluidas);
+    }
 
-    ULTIMA_SEMANAL = Object.entries(porExecSemana).map(([nome,v])=>({
-      executivo: nome, os_abertas_7d: v.osAbertas, justificativas_enviadas_7d: v.justEnviadas,
-      justificativas_aprovadas_7d: v.justAprovadas, concluidas_na_semana: v.justAprovadas
-    })).sort((a,b)=> (b.concluidas_na_semana - a.concluidas_na_semana));
-
+    ULTIMA_SEMANAL = relatorioPeriodo(7).map(r=>({
+      executivo:r.executivo, os_abertas_7d:r.os_abertas, justificativas_enviadas_7d:r.justificativas_enviadas,
+      justificativas_aprovadas_7d:r.justificativas_aprovadas, concluidas_na_semana:r.concluidas
+    }));
     tbSem.innerHTML = ULTIMA_SEMANAL.length===0 ? '<tr class="empty-row"><td colspan="5">Sem atividade nos últimos 7 dias.</td></tr>' :
       ULTIMA_SEMANAL.map(r=>`<tr>
         <td>${escapeHtml(r.executivo)}</td><td>${r.os_abertas_7d}</td><td>${r.justificativas_enviadas_7d}</td>
         <td>${r.justificativas_aprovadas_7d}</td><td>${r.concluidas_na_semana}</td>
+      </tr>`).join('');
+
+    const relatorioMensal = relatorioPeriodo(30);
+    tbMes.innerHTML = relatorioMensal.length===0 ? '<tr class="empty-row"><td colspan="5">Sem atividade nos últimos 30 dias.</td></tr>' :
+      relatorioMensal.map(r=>`<tr>
+        <td>${escapeHtml(r.executivo)}</td><td>${r.os_abertas}</td><td>${r.justificativas_enviadas}</td>
+        <td>${r.justificativas_aprovadas}</td><td>${r.concluidas}</td>
+      </tr>`).join('');
+  }
+
+  let BASE_GERAL_DADOS = [];
+  async function loadBaseGeral(){
+    const tbody = document.getElementById('tbody-base-geral');
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Carregando...</td></tr>';
+    const [todas] = await fetchDadosGerais();
+    BASE_GERAL_DADOS = todas;
+
+    const segmentos = [...new Set(todas.map(r=>r.carteira).filter(Boolean))].sort();
+    const supers = [...new Set(todas.map(r=>r.superintendencia).filter(Boolean))].sort();
+    const curvas = [...new Set(todas.map(r=>r.curva).filter(Boolean))].sort();
+    document.getElementById('bg-segmento').innerHTML = '<option value="">Todos os segmentos</option>' + segmentos.map(s=>`<option>${escapeHtml(s)}</option>`).join('');
+    document.getElementById('bg-superintendencia').innerHTML = '<option value="">Todas as superintendências</option>' + supers.map(s=>`<option>${escapeHtml(s)}</option>`).join('');
+    document.getElementById('bg-curva').innerHTML = '<option value="">Todas as curvas</option>' + curvas.map(s=>`<option>${escapeHtml(s)}</option>`).join('');
+
+    renderBaseGeral();
+    ['bg-segmento','bg-superintendencia','bg-curva','bg-status'].forEach(id=>{
+      document.getElementById(id).onchange = renderBaseGeral;
+    });
+    document.getElementById('bg-busca').oninput = renderBaseGeral;
+  }
+
+  function renderBaseGeral(){
+    const STATUS_LABEL_BG = { pendente_tratamento:'Pendente', aguardando_execucao_os:'Aguard. OS', aguardando_validacao_justificativa:'Aguard. validação', cadastro_atualizado:'Atualizado' };
+    const busca = (document.getElementById('bg-busca').value||'').toLowerCase();
+    const fSeg = document.getElementById('bg-segmento').value;
+    const fSup = document.getElementById('bg-superintendencia').value;
+    const fCurva = document.getElementById('bg-curva').value;
+    const fStatus = document.getElementById('bg-status').value;
+
+    const filtradas = BASE_GERAL_DADOS.filter(r=>
+      (!busca || String(r.matricula).includes(busca) || (r.cliente||'').toLowerCase().includes(busca)) &&
+      (!fSeg || r.carteira===fSeg) && (!fSup || r.superintendencia===fSup) &&
+      (!fCurva || r.curva===fCurva) && (!fStatus || r.status_fluxo===fStatus)
+    );
+
+    document.getElementById('bg-contador').textContent = `${filtradas.length.toLocaleString('pt-BR')} de ${BASE_GERAL_DADOS.length.toLocaleString('pt-BR')} matrículas`;
+
+    const tbody = document.getElementById('tbody-base-geral');
+    tbody.innerHTML = filtradas.length===0 ? '<tr class="empty-row"><td colspan="7">Nenhuma matrícula encontrada.</td></tr>' :
+      filtradas.slice(0,500).map(r=>`<tr>
+        <td>${escapeHtml(r.matricula)}</td><td>${escapeHtml(r.cliente||'–')}</td><td>${escapeHtml(r.carteira||'–')}</td>
+        <td>${escapeHtml(r.superintendencia||'–')}</td><td>${escapeHtml(r.curva||'–')}</td>
+        <td class="num">${fmtR$fat(r.media_fat)}</td><td>${STATUS_LABEL_BG[r.status_fluxo]||r.status_fluxo}</td>
       </tr>`).join('');
   }
 
@@ -1009,6 +1200,8 @@
     } else {
       document.getElementById('btn-role-gestora').style.display = 'none';
       document.getElementById('btn-role-geral').style.display = 'none';
+      document.getElementById('btn-role-gerencial').style.display = 'none';
+      document.getElementById('btn-role-base-geral').style.display = 'none';
       const sel = document.getElementById('sel-executivo');
       sel.innerHTML = `<option value="${escapeHtml(perfil.nome_executivo)}">${escapeHtml(perfil.nome_executivo)}</option>`;
       sel.disabled = true;
