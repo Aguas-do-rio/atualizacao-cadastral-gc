@@ -171,6 +171,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Visão gerencial
       </button>
+      <button data-role="base-geral" id="btn-role-base-geral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+        Base geral
+      </button>
       <button id="btn-logout" style="margin-left:auto;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
         Sair
@@ -432,6 +436,35 @@
   </section>
 
   <!-- ================= BASE GERAL ================= -->
+  <section id="view-base-geral" class="view">
+    <div class="card">
+      <h2>Base geral de matrículas</h2>
+      <p class="sub">Todas as matrículas do projeto, com filtros por segmento, superintendência, curva e status.</p>
+      <div class="toolbar" style="margin-bottom:14px;">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="bg-busca" placeholder="Buscar por matrícula ou nome...">
+        </div>
+        <select id="bg-segmento"><option value="">Todos os segmentos</option></select>
+        <select id="bg-superintendencia"><option value="">Todas as superintendências</option></select>
+        <select id="bg-curva"><option value="">Todas as curvas</option></select>
+        <select id="bg-status">
+          <option value="">Todos os status</option>
+          <option value="pendente_tratamento">Pendente</option>
+          <option value="aguardando_execucao_os">Aguard. OS</option>
+          <option value="aguardando_validacao_justificativa">Aguard. validação</option>
+          <option value="cadastro_atualizado">Atualizado</option>
+        </select>
+      </div>
+      <div style="font-size:12.5px; color:var(--text-mut); margin-bottom:10px;" id="bg-contador">Carregando...</div>
+      <div style="overflow-x:auto; max-height:600px; overflow-y:auto;">
+        <table>
+          <thead><tr><th>Matrícula</th><th>Nome</th><th>Segmento</th><th>Superintendência</th><th>Curva</th><th class="num">Faturamento (R$)</th><th>Status</th></tr></thead>
+          <tbody id="tbody-base-geral"><tr class="empty-row"><td colspan="7">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
 </div>
 
@@ -550,6 +583,7 @@
       if(btn.dataset.role === 'gestora') loadJustificativas();
       if(btn.dataset.role === 'geral') loadVisaoGeral();
       if(btn.dataset.role === 'gerencial') loadVisaoGerencial();
+      if(btn.dataset.role === 'base-geral') loadBaseGeral();
     });
   });
 
