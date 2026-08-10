@@ -232,6 +232,14 @@
             <option value="PRIORIDADE 1">Prioridade 1</option>
             <option value="PRIORIDADE 2">Prioridade 2</option>
           </select>
+          <select id="f-curva">
+            <option value="">Todas as curvas</option>
+            <option value="Estrategico">Estratégico</option>
+            <option value="Cliente A">Curva A</option>
+            <option value="Cliente B">Curva B</option>
+            <option value="Cliente C">Curva C</option>
+            <option value="Cliente D">Curva D</option>
+          </select>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -601,6 +609,7 @@
   document.getElementById('f-status').addEventListener('change', renderCarteira);
   document.getElementById('f-pendencia').addEventListener('change', renderCarteira);
   document.getElementById('f-prioridade').addEventListener('change', renderCarteira);
+  document.getElementById('f-curva').addEventListener('change', renderCarteira);
 
   const STATUS_LABEL = {
     pendente_tratamento: '<span class="badge badge-pendente">⏳ Pendente</span>',
@@ -624,11 +633,13 @@
     const fStatus = document.getElementById('f-status').value;
     const fPendencia = document.getElementById('f-pendencia').value;
     const fPrioridade = document.getElementById('f-prioridade').value;
+    const fCurva = document.getElementById('f-curva').value;
     const filtered = CARTEIRA.filter(r=>
       (!busca || String(r.matricula).includes(busca) || (r.cliente||'').toLowerCase().includes(busca)) &&
       (!fStatus || r.status_fluxo === fStatus) &&
       (!fPendencia || r[fPendencia] === true) &&
-      (!fPrioridade || (r.prioridade||'').trim().toUpperCase() === fPrioridade)
+      (!fPrioridade || (r.prioridade||'').trim().toUpperCase() === fPrioridade) &&
+      (!fCurva || r.curva === fCurva)
     );
 
     document.getElementById('kpi-total').textContent = CARTEIRA.length;
