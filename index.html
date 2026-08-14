@@ -614,6 +614,19 @@
     return seg;
   }
 
+  async function contarOSSemanaTime(){
+    try{
+      const res = await fetch(SUPABASE_URL + '/rpc/contar_os_semana_time', {
+        method: 'POST',
+        headers: HEADERS,
+        body: JSON.stringify({})
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      return typeof data === 'number' ? data : null;
+    }catch(e){ console.error('contarOSSemanaTime error', e); return null; }
+  }
+
   const EXECUTIVOS = ['Alessandra dos Santos','Alessandro Silveira','Aline Nunes','Danielle Matta','Danillo Castro',
     'Diogo Garcia','Ediane Andrade','Ettiene Simoes','Fellipe Braga','Hagata Oliveira','Igor Coelho','Isabella Celio',
     'Lhorrany Diamante','Livia Christine','Manuela Curvello','Marcos Rato','Matheus Betbeder','Mirella Saviti',
@@ -954,7 +967,14 @@
     }
 
     // ---- consolidado do time (números apenas, sem discriminar por executivo) ----
-    const realizadoTime = Object.values(porExecOS).reduce((s,v)=>s+v,0);
+    // Usa uma função do servidor porque um executivo, pelas regras de acesso,
+    // só enxerga as OS da própria carteira — somar no navegador ficaria
+    // restrito só a ele mesmo. A função abaixo soma o time inteiro no banco.
+    let realizadoTime = await contarOSSemanaTime();
+    if(realizadoTime === null){
+      // fallback (ex: gestora, que já enxerga tudo mesmo) caso a função falhe por algum motivo
+      realizadoTime = Object.values(porExecOS).reduce((s,v)=>s+v,0);
+    }
     const pctTime = Math.round(realizadoTime/EVOLUCAO_META_TIME*100);
     const faltaTime = Math.max(0, EVOLUCAO_META_TIME - realizadoTime);
     document.getElementById('es-time-meta').textContent = EVOLUCAO_META_TIME;
