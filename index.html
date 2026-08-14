@@ -67,7 +67,7 @@
   .kpi.leaf::before{ background:var(--leaf); } .kpi.amber::before{ background:var(--amber); }
   .kpi .label{ font-size:11px; color:var(--text-mut); font-weight:700; margin-bottom:6px; }
   .kpi .value{ font-family:var(--font-display); font-size:23px; font-weight:800; color:var(--navy); }
-  .kpi .value.leaf{ color:var(--leaf); } .kpi .value.amber{ color:var(--amber); }
+  .kpi .value.leaf{ color:var(--leaf); } .kpi .value.amber{ color:var(--amber); } .kpi .value.water{ color:var(--water); }
 
   .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:16px 0; }
   .toolbar select, .toolbar input{ font-size:13px; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); }
@@ -159,6 +159,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg>
         Sou executivo
       </button>
+      <button data-role="evolucao-semanal" id="btn-role-evolucao-semanal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Evolução Semanal
+      </button>
       <button data-role="gestora" id="btn-role-gestora">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         Sou gestora
@@ -248,6 +252,32 @@
           </table>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ================= EVOLUÇÃO SEMANAL ================= -->
+  <section id="view-evolucao-semanal" class="view">
+    <div class="card" id="es-card-individual" style="display:none;">
+      <h2>Minha meta semanal</h2>
+      <p class="sub">Baseada na quantidade de OS que você abriu nesta semana (segunda a domingo).</p>
+      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+        <div class="kpi"><div class="label">Meta</div><div class="value" id="es-meu-meta">15</div></div>
+        <div class="kpi water"><div class="label">Realizado</div><div class="value" id="es-meu-realizado">0</div></div>
+        <div class="kpi leaf"><div class="label">% atingido</div><div class="value leaf" id="es-meu-pct">0%</div></div>
+        <div class="kpi amber"><div class="label">Falta para a meta</div><div class="value amber" id="es-meu-falta">15</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Evolução do time</h2>
+      <p class="sub">Números consolidados de toda a equipe (18 executivos considerados — Felipe e Alessandro não entram nesse cálculo, e sempre reservamos a possibilidade de 1 executivo estar de férias).</p>
+      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+        <div class="kpi"><div class="label">Meta coletiva (100%)</div><div class="value" id="es-time-meta">270</div></div>
+        <div class="kpi water"><div class="label">Realizado pelo time</div><div class="value water" id="es-time-realizado">0</div></div>
+        <div class="kpi leaf"><div class="label">% atingido</div><div class="value leaf" id="es-time-pct">0%</div></div>
+        <div class="kpi amber"><div class="label">Falta para 100%</div><div class="value amber" id="es-time-falta">270</div></div>
+      </div>
+      <div style="margin-top:14px;" id="es-time-badge-wrap"></div>
     </div>
   </section>
 
@@ -402,6 +432,24 @@
   <!-- ================= VISÃO GERENCIAL ================= -->
   <section id="view-gerencial" class="view">
     <div class="card">
+      <h2>Meta semanal — quem bateu (baseado em OS abertas)</h2>
+      <p class="sub">Meta individual: 15 OS/semana. Meta coletiva: 270 (18 executivos — Felipe e Alessandro não entram nesse cálculo). Mínimo aceitável: 80% (216).</p>
+      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr); margin-bottom:14px;">
+        <div class="kpi"><div class="label">Meta coletiva (100%)</div><div class="value" id="mg-time-meta">270</div></div>
+        <div class="kpi water"><div class="label">Realizado pelo time</div><div class="value water" id="mg-time-realizado">0</div></div>
+        <div class="kpi leaf"><div class="label">% atingido</div><div class="value leaf" id="mg-time-pct">0%</div></div>
+        <div class="kpi amber"><div class="label">Falta para 100%</div><div class="value amber" id="mg-time-falta">270</div></div>
+      </div>
+      <div style="margin-bottom:14px;" id="mg-time-badge-wrap"></div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Executivo</th><th>OS abertas (semana)</th><th>Meta</th><th>% atingido</th><th>Situação</th></tr></thead>
+          <tbody id="tbody-meta-semanal"><tr class="empty-row"><td colspan="5">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
         <div>
           <h2>Por executivo</h2>
@@ -549,6 +597,23 @@
   let SESSAO = null; // { access_token, refresh_token, user }
   let PERFIL = null; // { email, nome_executivo, role }
 
+  // ---------- Evolução semanal (meta de OS abertas) ----------
+  const EVOLUCAO_EXCLUIDOS = ['Fellipe Braga','Alessandro Silveira'];
+  const EVOLUCAO_META_INDIVIDUAL = 15;
+  const EVOLUCAO_TAMANHO_TIME = 18; // 21 executivos - Felipe e Alessandro, reservando sempre 1 de férias
+  const EVOLUCAO_META_TIME = EVOLUCAO_TAMANHO_TIME * EVOLUCAO_META_INDIVIDUAL; // 270
+  const EVOLUCAO_META_TIME_80 = Math.ceil(EVOLUCAO_META_TIME * 0.8); // 216
+
+  function inicioDaSemanaAtual(){
+    const agora = new Date();
+    const dia = agora.getDay(); // 0=domingo
+    const diffParaSegunda = (dia === 0) ? -6 : (1 - dia);
+    const seg = new Date(agora);
+    seg.setDate(agora.getDate() + diffParaSegunda);
+    seg.setHours(0,0,0,0);
+    return seg;
+  }
+
   const EXECUTIVOS = ['Alessandra dos Santos','Alessandro Silveira','Aline Nunes','Danielle Matta','Danillo Castro',
     'Diogo Garcia','Ediane Andrade','Ettiene Simoes','Fellipe Braga','Hagata Oliveira','Igor Coelho','Isabella Celio',
     'Lhorrany Diamante','Livia Christine','Manuela Curvello','Marcos Rato','Matheus Betbeder','Mirella Saviti',
@@ -602,6 +667,7 @@
       if(btn.dataset.role === 'gestora') loadJustificativas();
       if(btn.dataset.role === 'geral') loadVisaoGeral();
       if(btn.dataset.role === 'gerencial') loadVisaoGerencial();
+      if(btn.dataset.role === 'evolucao-semanal') loadEvolucaoSemanal();
       if(btn.dataset.role === 'base-geral') loadBaseGeral();
     });
   });
@@ -861,6 +927,47 @@
     });
   }
 
+  async function loadEvolucaoSemanal(){
+    const inicioSemana = inicioDaSemanaAtual();
+    const [, todasOS] = await fetchDadosGerais();
+    const osSemana = todasOS.filter(os => os.aberto_em && new Date(os.aberto_em) >= inicioSemana);
+
+    const porExecOS = {};
+    osSemana.forEach(os=>{
+      const ex = os.aberto_por || '—';
+      if(EVOLUCAO_EXCLUIDOS.includes(ex)) return;
+      porExecOS[ex] = (porExecOS[ex]||0) + 1;
+    });
+
+    // ---- card individual (só aparece para quem é executivo e não está excluído) ----
+    const cardIndividual = document.getElementById('es-card-individual');
+    if(PERFIL && PERFIL.role === 'executivo' && !EVOLUCAO_EXCLUIDOS.includes(PERFIL.nome_executivo)){
+      cardIndividual.style.display = 'block';
+      const meuRealizado = porExecOS[PERFIL.nome_executivo] || 0;
+      const meuPct = Math.min(100, Math.round(meuRealizado/EVOLUCAO_META_INDIVIDUAL*100));
+      const meuFalta = Math.max(0, EVOLUCAO_META_INDIVIDUAL - meuRealizado);
+      document.getElementById('es-meu-realizado').textContent = meuRealizado;
+      document.getElementById('es-meu-pct').textContent = meuPct + '%';
+      document.getElementById('es-meu-falta').textContent = meuFalta;
+    } else {
+      cardIndividual.style.display = 'none';
+    }
+
+    // ---- consolidado do time (números apenas, sem discriminar por executivo) ----
+    const realizadoTime = Object.values(porExecOS).reduce((s,v)=>s+v,0);
+    const pctTime = Math.round(realizadoTime/EVOLUCAO_META_TIME*100);
+    const faltaTime = Math.max(0, EVOLUCAO_META_TIME - realizadoTime);
+    document.getElementById('es-time-meta').textContent = EVOLUCAO_META_TIME;
+    document.getElementById('es-time-realizado').textContent = realizadoTime;
+    document.getElementById('es-time-pct').textContent = pctTime + '%';
+    document.getElementById('es-time-falta').textContent = faltaTime;
+
+    const atingiu80 = realizadoTime >= EVOLUCAO_META_TIME_80;
+    document.getElementById('es-time-badge-wrap').innerHTML = atingiu80
+      ? `<span class="badge badge-atualizado">✅ Time atingiu os 80% mínimos (${EVOLUCAO_META_TIME_80})</span>`
+      : `<span class="badge badge-pendente">⚠️ Time ainda não atingiu os 80% mínimos (${EVOLUCAO_META_TIME_80}) — faltam ${Math.max(0, EVOLUCAO_META_TIME_80 - realizadoTime)}</span>`;
+  }
+
   async function loadVisaoGeral(){
     const [todas] = await fetchDadosGerais();
 
@@ -973,6 +1080,40 @@
     tbMes.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
 
     const [todas, todasOS, todasJust] = await fetchDadosGerais();
+
+    // ---- meta semanal (baseada em OS abertas) ----
+    const inicioSemanaMG = inicioDaSemanaAtual();
+    const osSemanaMG = todasOS.filter(os => os.aberto_em && new Date(os.aberto_em) >= inicioSemanaMG);
+    const porExecMetaSemanal = {};
+    osSemanaMG.forEach(os=>{
+      const ex = os.aberto_por || '—';
+      if(EVOLUCAO_EXCLUIDOS.includes(ex)) return;
+      porExecMetaSemanal[ex] = (porExecMetaSemanal[ex]||0) + 1;
+    });
+    const nomesConsiderados = [...new Set(todas.map(r=>r.executivo).filter(ex=>ex && !EVOLUCAO_EXCLUIDOS.includes(ex)))].sort();
+    const linhasMetaSemanal = nomesConsiderados.map(ex=>{
+      const realizado = porExecMetaSemanal[ex] || 0;
+      const pct = Math.min(999, Math.round(realizado/EVOLUCAO_META_INDIVIDUAL*100));
+      const bateu = realizado >= EVOLUCAO_META_INDIVIDUAL;
+      return { ex, realizado, pct, bateu };
+    }).sort((a,b)=> b.realizado - a.realizado);
+    document.getElementById('tbody-meta-semanal').innerHTML = linhasMetaSemanal.length===0 ? '<tr class="empty-row"><td colspan="5">Sem dados</td></tr>' :
+      linhasMetaSemanal.map(l=>`<tr>
+        <td>${escapeHtml(l.ex)}</td><td>${l.realizado}</td><td>${EVOLUCAO_META_INDIVIDUAL}</td><td>${l.pct}%</td>
+        <td>${l.bateu ? '<span class="badge badge-atualizado">✅ Bateu a meta</span>' : '<span class="badge badge-pendente">Não bateu</span>'}</td>
+      </tr>`).join('');
+
+    const realizadoTimeMG = Object.values(porExecMetaSemanal).reduce((s,v)=>s+v,0);
+    const pctTimeMG = Math.round(realizadoTimeMG/EVOLUCAO_META_TIME*100);
+    const faltaTimeMG = Math.max(0, EVOLUCAO_META_TIME - realizadoTimeMG);
+    document.getElementById('mg-time-meta').textContent = EVOLUCAO_META_TIME;
+    document.getElementById('mg-time-realizado').textContent = realizadoTimeMG;
+    document.getElementById('mg-time-pct').textContent = pctTimeMG + '%';
+    document.getElementById('mg-time-falta').textContent = faltaTimeMG;
+    const atingiu80MG = realizadoTimeMG >= EVOLUCAO_META_TIME_80;
+    document.getElementById('mg-time-badge-wrap').innerHTML = atingiu80MG
+      ? `<span class="badge badge-atualizado">✅ Time atingiu os 80% mínimos (${EVOLUCAO_META_TIME_80})</span>`
+      : `<span class="badge badge-pendente">⚠️ Time ainda não atingiu os 80% mínimos (${EVOLUCAO_META_TIME_80}) — faltam ${Math.max(0, EVOLUCAO_META_TIME_80 - realizadoTimeMG)}</span>`;
 
     // ---- por executivo ----
     const porExec = {};
