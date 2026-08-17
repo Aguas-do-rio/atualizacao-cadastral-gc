@@ -1287,6 +1287,12 @@
     return isNaN(d) ? null : d.toISOString();
   }
 
+  function normalizarNumeroOS(v){
+    // mantém só dígitos e remove zeros à esquerda — resolve diferenças de
+    // formatação (espaços, zeros à esquerda, "123456.0" do Excel, etc.)
+    return String(v ?? '').replace(/\.0$/, '').replace(/\D/g, '').replace(/^0+/, '');
+  }
+
   document.getElementById('btn-processar-exec').addEventListener('click', async ()=>{
     const fileInput = document.getElementById('input-exec-exoc');
     const msg = document.getElementById('msg-exec-exoc');
@@ -1314,11 +1320,25 @@
         return;
       }
 
+      msg.textContent = `Carregando OS em aberto no sistema...`;
+
+      // busca todas as OS ainda em aberto UMA vez só (em vez de uma consulta por linha)
+      const osAbertasSistema = await fetchAllPages('/ordens_servico?status=eq.aguardando_execucao&select=*');
+      const mapaOS = {};
+      osAbertasSistema.forEach(os=>{
+        const chave = normalizarNumeroOS(os.numero_os);
+        if(!chave) return;
+        if(!mapaOS[chave]) mapaOS[chave] = [];
+        mapaOS[chave].push(os);
+      });
+
       msg.textContent = `Processando ${rows.length} linhas...`;
 
       let executadas = 0, naoExecutadas = 0, aindaAbertas = 0, naoEncontradas = 0;
+      const exemplosNaoEncontradas = [];
       for(const row of rows){
-        const numeroOS = String(row[colOS] ?? '').trim();
+        const numeroOSOriginal = String(row[colOS] ?? '').trim();
+        const numeroOS = normalizarNumeroOS(row[colOS]);
         const ocorrencia = row[colOcorrencia];
         if(!numeroOS) continue;
         if(!ocorrencia){ aindaAbertas++; continue; }
@@ -1326,8 +1346,12 @@
         const executado = String(ocorrencia).trim().toUpperCase() === '0-EXECUTADO';
         const dataEnc = colDataEnc ? parseDataExcel(row[colDataEnc]) : null;
 
-        const encontradas = await apiGet('/ordens_servico?numero_os=eq.' + encodeURIComponent(numeroOS) + '&status=eq.aguardando_execucao&select=*');
-        if(!encontradas || encontradas.length===0){ naoEncontradas++; continue; }
+        const encontradas = mapaOS[numeroOS];
+        if(!encontradas || encontradas.length===0){
+          naoEncontradas++;
+          if(exemplosNaoEncontradas.length < 5) exemplosNaoEncontradas.push(numeroOSOriginal);
+          continue;
+        }
 
         for(const os of encontradas){
           const novoStatusOS = executado ? 'executada' : 'nao_executada';
@@ -1337,20 +1361,21 @@
           await apiPatch('/matriculas?matricula=eq.' + os.matricula, { status_fluxo: novoStatusMat });
 
           logHistorico(os.matricula, 'Importação SCAE', executado ? 'OS executada (importação EXEC/EXOC)' : 'OS encerrada sem execução — retornado para pendente',
-            `OS ${numeroOS} — ${ocorrencia}`);
+            `OS ${numeroOSOriginal} — ${ocorrencia}`);
 
           if(executado) executadas++; else naoExecutadas++;
         }
       }
 
       msg.style.color='var(--leaf)'; msg.textContent = 'Importação concluída.';
+      const exemplosHtml = exemplosNaoEncontradas.length ? `<p style="font-size:12px; color:var(--text-mut); margin-top:10px;">Exemplos de OS não encontradas aqui: ${exemplosNaoEncontradas.map(escapeHtml).join(', ')} — confira se esses números realmente foram abertos por um executivo dentro da ferramenta.</p>` : '';
       resumoEl.innerHTML = `
         <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
           <div class="kpi leaf"><div class="label">Marcadas como atualizadas</div><div class="value leaf">${executadas}</div></div>
           <div class="kpi amber"><div class="label">Retornadas para pendente</div><div class="value amber">${naoExecutadas}</div></div>
           <div class="kpi"><div class="label">Ainda em aberto no SCAE</div><div class="value">${aindaAbertas}</div></div>
           <div class="kpi"><div class="label">Nº de OS não encontradas aqui</div><div class="value">${naoEncontradas}</div></div>
-        </div>`;
+        </div>${exemplosHtml}`;
       fileInput.value = '';
     }catch(err){
       console.error(err);
