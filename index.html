@@ -1325,20 +1325,22 @@
       // busca todas as OS ainda em aberto UMA vez só (em vez de uma consulta por linha)
       const osAbertasSistema = await fetchAllPages('/ordens_servico?status=eq.aguardando_execucao&select=*');
       const mapaOS = {};
+      const mapaPorMatricula = {};
       osAbertasSistema.forEach(os=>{
         const chave = normalizarNumeroOS(os.numero_os);
-        if(!chave) return;
-        if(!mapaOS[chave]) mapaOS[chave] = [];
-        mapaOS[chave].push(os);
+        if(chave){ if(!mapaOS[chave]) mapaOS[chave] = []; mapaOS[chave].push(os); }
+        const matriculaChave = String(os.matricula ?? '').trim();
+        if(matriculaChave){ if(!mapaPorMatricula[matriculaChave]) mapaPorMatricula[matriculaChave] = []; mapaPorMatricula[matriculaChave].push(os); }
       });
 
       msg.textContent = `Processando ${rows.length} linhas...`;
 
-      let executadas = 0, naoExecutadas = 0, aindaAbertas = 0, naoEncontradas = 0;
+      let executadas = 0, naoExecutadas = 0, aindaAbertas = 0, naoEncontradas = 0, encontradasPorMatricula = 0;
       const exemplosNaoEncontradas = [];
       for(const row of rows){
         const numeroOSOriginal = String(row[colOS] ?? '').trim();
         const numeroOS = normalizarNumeroOS(row[colOS]);
+        const matriculaOriginal = colLigacao ? String(row[colLigacao] ?? '').trim().replace(/\.0$/,'') : '';
         const ocorrencia = row[colOcorrencia];
         if(!numeroOS) continue;
         if(!ocorrencia){ aindaAbertas++; continue; }
@@ -1346,12 +1348,18 @@
         const executado = String(ocorrencia).trim().toUpperCase() === '0-EXECUTADO';
         const dataEnc = colDataEnc ? parseDataExcel(row[colDataEnc]) : null;
 
-        const encontradas = mapaOS[numeroOS];
+        let encontradas = mapaOS[numeroOS];
+        let viaMatricula = false;
+        if((!encontradas || encontradas.length===0) && matriculaOriginal){
+          encontradas = mapaPorMatricula[matriculaOriginal];
+          viaMatricula = !!(encontradas && encontradas.length);
+        }
         if(!encontradas || encontradas.length===0){
           naoEncontradas++;
-          if(exemplosNaoEncontradas.length < 5) exemplosNaoEncontradas.push(numeroOSOriginal);
+          if(exemplosNaoEncontradas.length < 5) exemplosNaoEncontradas.push(`OS ${numeroOSOriginal}${matriculaOriginal ? ' / matrícula ' + matriculaOriginal : ''}`);
           continue;
         }
+        if(viaMatricula) encontradasPorMatricula++;
 
         for(const os of encontradas){
           const novoStatusOS = executado ? 'executada' : 'nao_executada';
@@ -1368,14 +1376,15 @@
       }
 
       msg.style.color='var(--leaf)'; msg.textContent = 'Importação concluída.';
-      const exemplosHtml = exemplosNaoEncontradas.length ? `<p style="font-size:12px; color:var(--text-mut); margin-top:10px;">Exemplos de OS não encontradas aqui: ${exemplosNaoEncontradas.map(escapeHtml).join(', ')} — confira se esses números realmente foram abertos por um executivo dentro da ferramenta.</p>` : '';
+      const exemplosHtml = exemplosNaoEncontradas.length ? `<p style="font-size:12px; color:var(--text-mut); margin-top:10px;">Exemplos de OS não encontradas aqui (nem por número, nem por matrícula): ${exemplosNaoEncontradas.map(escapeHtml).join(', ')} — confira se essas OS/matrículas realmente foram abertas por um executivo dentro da ferramenta.</p>` : '';
+      const matriculaHtml = encontradasPorMatricula>0 ? `<p style="font-size:12px; color:var(--text-mut); margin-top:6px;">${encontradasPorMatricula} correspondência(s) encontrada(s) pela matrícula (Nº Ligação), quando o número da OS não bateu.</p>` : '';
       resumoEl.innerHTML = `
         <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
           <div class="kpi leaf"><div class="label">Marcadas como atualizadas</div><div class="value leaf">${executadas}</div></div>
           <div class="kpi amber"><div class="label">Retornadas para pendente</div><div class="value amber">${naoExecutadas}</div></div>
           <div class="kpi"><div class="label">Ainda em aberto no SCAE</div><div class="value">${aindaAbertas}</div></div>
           <div class="kpi"><div class="label">Nº de OS não encontradas aqui</div><div class="value">${naoEncontradas}</div></div>
-        </div>${exemplosHtml}`;
+        </div>${matriculaHtml}${exemplosHtml}`;
       fileInput.value = '';
     }catch(err){
       console.error(err);
