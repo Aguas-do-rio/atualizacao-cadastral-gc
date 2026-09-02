@@ -163,6 +163,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         Evolução Semanal
       </button>
+      <button data-role="plano-acao" id="btn-role-plano-acao">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Plano de ação
+      </button>
       <button data-role="gestora" id="btn-role-gestora">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         Sou gestora
@@ -281,6 +285,24 @@
     </div>
   </section>
 
+  <!-- ================= PLANO DE AÇÃO ================= -->
+  <section id="view-plano-acao" class="view">
+    <div class="card">
+      <h2>Plano de ação — prioridades</h2>
+      <p class="sub">Matrículas que se enquadram em pelo menos uma destas prioridades: <b>Curva A</b>, <b>Sem nome</b> (Ao Consumidor / Lote não cadastrado / etc.), <b>Todos os dados pendentes</b> (falta e-mail, celular e CPF/CNPJ ao mesmo tempo) ou <b>Serviço Infobeep pendente de celular</b>.</p>
+      <div class="kpi-row" style="grid-template-columns:repeat(2,1fr); max-width:520px;">
+        <div class="kpi amber"><div class="label">Pendentes (nas prioridades)</div><div class="value amber" id="pa-pendente">0</div></div>
+        <div class="kpi leaf"><div class="label">Já executadas</div><div class="value leaf" id="pa-executado">0</div></div>
+      </div>
+      <div style="overflow-x:auto; margin-top:16px;">
+        <table>
+          <thead><tr><th>Matrícula</th><th>Cliente</th><th>Curva</th><th>Prioridades</th><th>Status</th></tr></thead>
+          <tbody id="tbody-plano-acao"><tr class="empty-row"><td colspan="5">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= GESTORA ================= -->
   <section id="view-gestora" class="view">
     <div class="card">
@@ -337,6 +359,17 @@
       <p class="sub">Cruzamento entre a base e as OS abertas — mostra quantas matrículas tiveram ação real de um executivo pela ferramenta (não conta as que já vieram atualizadas na importação).</p>
       <div class="kpi-row" style="grid-template-columns:1fr;">
         <div class="kpi water" style="max-width:320px;"><div class="label">Matrículas tratadas na plataforma</div><div class="value water" id="g-tratadas-total">0</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Matrículas atualizadas por curva (via OS)</h2>
+      <p class="sub">Cruzamento entre a base e as OS abertas — só conta quem foi para "Cadastro Atualizado" tendo uma OS registrada na plataforma (ação real do executivo), quebrado por curva.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Curva</th><th>Atualizadas via OS</th></tr></thead>
+          <tbody id="tbody-atualizadas-curva-os"><tr class="empty-row"><td colspan="2">Carregando...</td></tr></tbody>
+        </table>
       </div>
     </div>
 
@@ -453,6 +486,17 @@
         <table>
           <thead><tr><th>Executivo</th><th>OS abertas (semana)</th><th>Meta</th><th>% atingido</th><th>Situação</th></tr></thead>
           <tbody id="tbody-meta-semanal"><tr class="empty-row"><td colspan="5">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Plano de ação — pendente x executado por executivo</h2>
+      <p class="sub">Prioridades: Curva A, Sem nome, Todos os dados pendentes e Infobeep pendente de celular.</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Executivo</th><th>Pendente (prioridades)</th><th>Já executado</th></tr></thead>
+          <tbody id="tbody-plano-acao-gerencial"><tr class="empty-row"><td colspan="3">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -606,6 +650,22 @@
   let PERFIL = null; // { email, nome_executivo, role }
 
   // ---------- Evolução semanal (meta de OS abertas) ----------
+  // ---------- Plano de ação (prioridades) ----------
+  const INFOBEEP_MATRICULAS = new Set([100000920,100001548,100003326,100003587,100004415,100004494,100004561,100004800,100005365,100005778,100006112,100006207,100006826,100006895,100007418,100008563,100012102,100013165,100014021,100014844,100014947,100015058,100015975,100017111,100017371,100017947,100076987,100097255,100099159,100134663,100145825,100146028,100153449,100203999,100241069,100242825,100244957,100251208,100253037,100254776,100254786,100255604,100255616,100256794,100264583,100264713,100265208,100265215,100273506,100281551,100289788,100293730,100293812,100293817,100293850,100293935,100295108,100295152,100302310,100303345,100306774,100307704,100307871,100316064,100317078,100319883,100322122,100323372,100339120,100339124,100339256,100339270,100339900,100339901,100340228,100345233,100348881,100351105,100357657,100360020,100386701,100410677,100413307,100429946,100431417,100432107,100453111,100463332,100464473,100467979,100468740,100469676,100473132,100473500,100473626,100474462,100489104,100489993,100490421,100497868,100498194,100500109,100508350,100508546,100509954,100512033,100513158,100516282,100518937,100626015,100649117,100900693,101098586,101107762,101108939,101109691,101166769,101221350,101228059,101276418,101382632,101468320,101482621,101491997,101534000,101681421,101718292,101829343,101883226,101925623,101934903,102001163,102067774,102383800,102597120,102644791,102646403,102653646,102653649,102731320,103234379,400016803,400020940,400020978,400022685,400022801,400023652,400025978,400027219,400030546,400030976,400034266,400048370,400050980,400052365,400067420,400080419,400088674,400094037,400097832,400126216,400131302,400149387,400159772,400162329,400205592,400205618,400214121,400221430,400223812,400243091,400293426,400295189,400306737,400317770,400319557,400350818,400364200,400380762,400394137,400413600,400454577,400455893,400467583,400473218,400513022,400519957,401104339,401106277,401229896,401294581,401444532,401551959,401553648,401564000,401645738,401690809,401697219,401700382,401724256,401736733,401860635,402017190,402062089,402583232,402666115].map(String));
+
+  function calcularPrioridades(r){
+    const isCurvaA = r.curva === 'Cliente A';
+    const isSemNome = ehSemNomeValido(r);
+    const isTodosOsDados = !!(r.pendente_email && r.pendente_celular && r.pendente_cpf_cnpj);
+    const isInfobeep = INFOBEEP_MATRICULAS.has(String(r.matricula));
+    const tags = [];
+    if(isCurvaA) tags.push('Curva A');
+    if(isSemNome) tags.push('Sem nome');
+    if(isTodosOsDados) tags.push('Todos os dados');
+    if(isInfobeep) tags.push('Infobeep');
+    return { isCurvaA, isSemNome, isTodosOsDados, isInfobeep, tags, prioritaria: tags.length>0 };
+  }
+
   const EVOLUCAO_EXCLUIDOS = ['Fellipe Braga','Alessandro Silveira'];
   const EVOLUCAO_META_INDIVIDUAL = 15;
   const EVOLUCAO_TAMANHO_TIME = 18; // 21 executivos - Felipe e Alessandro, reservando sempre 1 de férias
@@ -689,6 +749,7 @@
       if(btn.dataset.role === 'geral') loadVisaoGeral();
       if(btn.dataset.role === 'gerencial') loadVisaoGerencial();
       if(btn.dataset.role === 'evolucao-semanal') loadEvolucaoSemanal();
+      if(btn.dataset.role === 'plano-acao') loadPlanoAcao();
       if(btn.dataset.role === 'base-geral') loadBaseGeral();
     });
   });
@@ -948,6 +1009,43 @@
     });
   }
 
+  async function loadPlanoAcao(){
+    const tbody = document.getElementById('tbody-plano-acao');
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
+    const [todas] = await fetchDadosGerais();
+
+    const minhaCarteira = (PERFIL && PERFIL.role === 'executivo')
+      ? todas.filter(r=>r.executivo === PERFIL.nome_executivo)
+      : todas;
+
+    const STATUS_LABEL_PA = { pendente_tratamento:'Pendente', aguardando_execucao_os:'Aguard. OS', aguardando_validacao_justificativa:'Aguard. validação', cadastro_atualizado:'Atualizado' };
+
+    let pendente = 0, executado = 0;
+    const linhasPendentes = [];
+    minhaCarteira.forEach(r=>{
+      const p = calcularPrioridades(r);
+      if(!p.prioritaria) return;
+      if(r.status_fluxo === 'pendente_tratamento'){
+        pendente++;
+        linhasPendentes.push({ r, tags: p.tags });
+      } else if(r.status_fluxo === 'cadastro_atualizado' && (p.isCurvaA || p.isSemNome || p.isInfobeep)){
+        // "Todos os dados" não conta aqui: os campos zeram quando resolvido, não dá pra rastrear depois
+        executado++;
+      }
+    });
+
+    document.getElementById('pa-pendente').textContent = pendente;
+    document.getElementById('pa-executado').textContent = executado;
+
+    linhasPendentes.sort((a,b)=> b.tags.length - a.tags.length);
+    tbody.innerHTML = linhasPendentes.length===0 ? '<tr class="empty-row"><td colspan="5">Nenhuma matrícula prioritária pendente 🎉</td></tr>' :
+      linhasPendentes.map(({r,tags})=>`<tr>
+        <td>${escapeHtml(r.matricula)}</td><td>${escapeHtml(r.cliente||'–')}</td><td>${escapeHtml(r.curva||'–')}</td>
+        <td>${tags.map(t=>`<span class="badge badge-pendente" style="margin-right:4px;">${escapeHtml(t)}</span>`).join('')}</td>
+        <td>${STATUS_LABEL_PA[r.status_fluxo]||r.status_fluxo}</td>
+      </tr>`).join('');
+  }
+
   async function loadEvolucaoSemanal(){
     const inicioSemana = inicioDaSemanaAtual();
     const [, todasOS] = await fetchDadosGerais();
@@ -1016,6 +1114,18 @@
     const matriculasComOS = new Set(todasOS.map(os=>os.matricula));
     const totalTratadas = matriculasComOS.size;
     document.getElementById('g-tratadas-total').textContent = totalTratadas;
+
+    // ---- atualizadas via OS, por curva ----
+    const atualizadasPorCurvaOS = {};
+    todas.forEach(r=>{
+      if(r.status_fluxo==='cadastro_atualizado' && matriculasComOS.has(r.matricula)){
+        const k = r.curva || '—';
+        atualizadasPorCurvaOS[k] = (atualizadasPorCurvaOS[k]||0) + 1;
+      }
+    });
+    const linhasAtualCurvaOS = ordenarPorCurva(Object.entries(atualizadasPorCurvaOS).map(([nome,qtd])=>({nome,qtd})), 'nome');
+    document.getElementById('tbody-atualizadas-curva-os').innerHTML = linhasAtualCurvaOS.length===0 ? '<tr class="empty-row"><td colspan="2">Sem dados</td></tr>' :
+      linhasAtualCurvaOS.map(l=>`<tr><td>${escapeHtml(l.nome)}</td><td>${l.qtd}</td></tr>`).join('');
 
     // ---- pendências ----
     const populacaoPendente = todas.filter(r=>r.status_fluxo==='pendente_tratamento');
@@ -1113,6 +1223,20 @@
     tbMes.innerHTML = '<tr class="empty-row"><td colspan="5">Carregando...</td></tr>';
 
     const [todas, todasOS, todasJust] = await fetchDadosGerais();
+
+    // ---- plano de ação: pendente x executado por executivo ----
+    const paPorExec = {};
+    todas.forEach(r=>{
+      const p = calcularPrioridades(r);
+      if(!p.prioritaria) return;
+      const ex = r.executivo || '—';
+      if(!paPorExec[ex]) paPorExec[ex] = { pendente:0, executado:0 };
+      if(r.status_fluxo === 'pendente_tratamento') paPorExec[ex].pendente++;
+      else if(r.status_fluxo === 'cadastro_atualizado' && (p.isCurvaA || p.isSemNome || p.isInfobeep)) paPorExec[ex].executado++;
+    });
+    const linhasPA = Object.entries(paPorExec).sort((a,b)=> b[1].pendente - a[1].pendente);
+    document.getElementById('tbody-plano-acao-gerencial').innerHTML = linhasPA.length===0 ? '<tr class="empty-row"><td colspan="3">Sem dados</td></tr>' :
+      linhasPA.map(([nome,v])=>`<tr><td>${escapeHtml(nome)}</td><td>${v.pendente}</td><td>${v.executado}</td></tr>`).join('');
 
     // ---- meta semanal (baseada em OS abertas) ----
     const inicioSemanaMG = inicioDaSemanaAtual();
