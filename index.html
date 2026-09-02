@@ -357,8 +357,11 @@
     <div class="card">
       <h2>Matrículas tratadas na plataforma</h2>
       <p class="sub">Cruzamento entre a base e as OS abertas — mostra quantas matrículas tiveram ação real de um executivo pela ferramenta (não conta as que já vieram atualizadas na importação).</p>
-      <div class="kpi-row" style="grid-template-columns:1fr;">
-        <div class="kpi water" style="max-width:320px;"><div class="label">Matrículas tratadas na plataforma</div><div class="value water" id="g-tratadas-total">0</div></div>
+      <div class="kpi-row">
+        <div class="kpi water"><div class="label">Com OS aberta na plataforma</div><div class="value water" id="g-tratadas-total">0</div></div>
+        <div class="kpi leaf"><div class="label">— já atualizadas de fato</div><div class="value leaf" id="g-tratadas-atualizadas">0</div></div>
+        <div class="kpi"><div class="label">— aguardando execução</div><div class="value" id="g-tratadas-aguardando">0</div></div>
+        <div class="kpi amber"><div class="label">— voltaram para pendente</div><div class="value amber" id="g-tratadas-naoexecutada">0</div></div>
       </div>
     </div>
 
@@ -1129,6 +1132,19 @@
     const matriculasComOS = new Set(todasOS.map(os=>os.matricula));
     const totalTratadas = matriculasComOS.size;
     document.getElementById('g-tratadas-total').textContent = totalTratadas;
+
+    const statusPorMatricula = {};
+    todas.forEach(r=>{ statusPorMatricula[r.matricula] = r.status_fluxo; });
+    let tratAtualizadas=0, tratAguardando=0, tratNaoExecutada=0;
+    matriculasComOS.forEach(m=>{
+      const st = statusPorMatricula[m];
+      if(st==='cadastro_atualizado') tratAtualizadas++;
+      else if(st==='aguardando_execucao_os') tratAguardando++;
+      else if(st==='pendente_tratamento') tratNaoExecutada++;
+    });
+    document.getElementById('g-tratadas-atualizadas').textContent = tratAtualizadas;
+    document.getElementById('g-tratadas-aguardando').textContent = tratAguardando;
+    document.getElementById('g-tratadas-naoexecutada').textContent = tratNaoExecutada;
 
     // ---- atualizadas via OS, por curva ----
     const atualizadasPorCurvaOS = {};
