@@ -774,7 +774,7 @@
     if(!currentExecutivo){ document.getElementById('exec-content').style.display = 'none'; return; }
     document.getElementById('exec-content').style.display = 'block';
     document.getElementById('tbody-carteira').innerHTML = '<tr class="empty-row"><td colspan="6">Carregando...</td></tr>';
-    CARTEIRA = await apiGet('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
+    CARTEIRA = await fetchAllPages('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
     renderCarteira();
   });
 
@@ -915,7 +915,7 @@
   async function loadJustificativas(){
     const tbP = document.getElementById('tbody-justificativas');
     tbP.innerHTML = '<tr class="empty-row"><td colspan="7">Carregando...</td></tr>';
-    const pendentes = await apiGet('/justificativas?status=eq.aguardando_validacao&select=*,matriculas(cliente)&order=aberto_em.asc');
+    const pendentes = await fetchAllPages('/justificativas?status=eq.aguardando_validacao&select=*,matriculas(cliente)&order=aberto_em.asc');
 
     tbP.innerHTML = pendentes.length===0 ? '<tr class="empty-row"><td colspan="7">Nada aguardando validação no momento.</td></tr>' :
       pendentes.map(j=>`
@@ -1618,7 +1618,7 @@
       currentExecutivo = perfil.nome_executivo;
       document.getElementById('exec-content').style.display = 'block';
       document.getElementById('tbody-carteira').innerHTML = '<tr class="empty-row"><td colspan="6">Carregando...</td></tr>';
-      CARTEIRA = await apiGet('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
+      CARTEIRA = await fetchAllPages('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
       renderCarteira();
     }
   }
