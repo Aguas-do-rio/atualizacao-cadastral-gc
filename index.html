@@ -826,7 +826,7 @@
       (!fPendencia || r[fPendencia] === true) &&
       (!fPrioridade || (r.prioridade||'').trim().toUpperCase() === fPrioridade) &&
       (!fCurva || r.curva === fCurva) &&
-      (!fRetornouPendente || r._retornouPendente === true)
+      (!fRetornouPendente || (r._retornouPendente === true && r.status_fluxo === 'pendente_tratamento'))
     );
 
     document.getElementById('kpi-total').textContent = CARTEIRA.length;
@@ -845,7 +845,7 @@
           <td>${escapeHtml(r.cliente||'–')}</td>
           <td>${escapeHtml((r.prioridade||'').replace('PRIORIDADE ','P'))}</td>
           <td>${pendTags(r)}</td>
-          <td>${STATUS_LABEL[r.status_fluxo]||r.status_fluxo}${r._retornouPendente ? ' <span class="badge badge-pendente" style="margin-left:4px;">Retornou (OS não executada)</span>' : ''}</td>
+          <td>${STATUS_LABEL[r.status_fluxo]||r.status_fluxo}${(r._retornouPendente && r.status_fluxo==='pendente_tratamento') ? ' <span class="badge badge-pendente" style="margin-left:4px;">Retornou (OS não executada)</span>' : ''}</td>
           <td>${r.status_fluxo==='pendente_tratamento' ? `<button class="btn btn-ghost btn-sm" data-tratar="${r.matricula}">Tratar</button>` : ''}</td>
         </tr>
       `).join('');
