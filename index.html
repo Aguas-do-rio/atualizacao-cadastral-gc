@@ -248,6 +248,10 @@
             <option value="Cliente C">Curva C</option>
             <option value="Cliente D">Curva D</option>
           </select>
+          <select id="f-retornou-pendente">
+            <option value="">Todas</option>
+            <option value="sim">Retornaram para pendente (OS não executada)</option>
+          </select>
         </div>
         <div style="overflow-x:auto;">
           <table>
@@ -769,12 +773,19 @@
   });
 
   // ---------- carteira do executivo ----------
+  async function marcarRetornouPendente(carteira, executivo){
+    const naoExecutadas = await fetchAllPages('/ordens_servico?status=eq.nao_executada&aberto_por=eq.' + encodeURIComponent(executivo) + '&select=matricula');
+    const matriculasComOSFalha = new Set(naoExecutadas.map(os=>os.matricula));
+    carteira.forEach(r=>{ r._retornouPendente = matriculasComOSFalha.has(r.matricula); });
+  }
+
   document.getElementById('sel-executivo').addEventListener('change', async (e)=>{
     currentExecutivo = e.target.value;
     if(!currentExecutivo){ document.getElementById('exec-content').style.display = 'none'; return; }
     document.getElementById('exec-content').style.display = 'block';
     document.getElementById('tbody-carteira').innerHTML = '<tr class="empty-row"><td colspan="6">Carregando...</td></tr>';
     CARTEIRA = await fetchAllPages('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
+    await marcarRetornouPendente(CARTEIRA, currentExecutivo);
     renderCarteira();
   });
 
@@ -783,6 +794,7 @@
   document.getElementById('f-pendencia').addEventListener('change', renderCarteira);
   document.getElementById('f-prioridade').addEventListener('change', renderCarteira);
   document.getElementById('f-curva').addEventListener('change', renderCarteira);
+  document.getElementById('f-retornou-pendente').addEventListener('change', renderCarteira);
 
   const STATUS_LABEL = {
     pendente_tratamento: '<span class="badge badge-pendente">⏳ Pendente</span>',
@@ -807,12 +819,14 @@
     const fPendencia = document.getElementById('f-pendencia').value;
     const fPrioridade = document.getElementById('f-prioridade').value;
     const fCurva = document.getElementById('f-curva').value;
+    const fRetornouPendente = document.getElementById('f-retornou-pendente').value;
     const filtered = CARTEIRA.filter(r=>
       (!busca || String(r.matricula).includes(busca) || (r.cliente||'').toLowerCase().includes(busca)) &&
       (!fStatus || r.status_fluxo === fStatus) &&
       (!fPendencia || r[fPendencia] === true) &&
       (!fPrioridade || (r.prioridade||'').trim().toUpperCase() === fPrioridade) &&
-      (!fCurva || r.curva === fCurva)
+      (!fCurva || r.curva === fCurva) &&
+      (!fRetornouPendente || r._retornouPendente === true)
     );
 
     document.getElementById('kpi-total').textContent = CARTEIRA.length;
@@ -831,7 +845,7 @@
           <td>${escapeHtml(r.cliente||'–')}</td>
           <td>${escapeHtml((r.prioridade||'').replace('PRIORIDADE ','P'))}</td>
           <td>${pendTags(r)}</td>
-          <td>${STATUS_LABEL[r.status_fluxo]||r.status_fluxo}</td>
+          <td>${STATUS_LABEL[r.status_fluxo]||r.status_fluxo}${r._retornouPendente ? ' <span class="badge badge-pendente" style="margin-left:4px;">Retornou (OS não executada)</span>' : ''}</td>
           <td>${r.status_fluxo==='pendente_tratamento' ? `<button class="btn btn-ghost btn-sm" data-tratar="${r.matricula}">Tratar</button>` : ''}</td>
         </tr>
       `).join('');
@@ -1628,6 +1642,7 @@
       document.getElementById('exec-content').style.display = 'block';
       document.getElementById('tbody-carteira').innerHTML = '<tr class="empty-row"><td colspan="6">Carregando...</td></tr>';
       CARTEIRA = await fetchAllPages('/matriculas?executivo=eq.' + encodeURIComponent(currentExecutivo) + '&select=*&order=status_fluxo.asc');
+      await marcarRetornouPendente(CARTEIRA, currentExecutivo);
       renderCarteira();
     }
   }
