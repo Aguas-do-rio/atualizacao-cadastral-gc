@@ -1066,7 +1066,7 @@
 
   async function loadEvolucaoSemanal(){
     const inicioSemana = inicioDaSemanaAtual();
-    const [, todasOS] = await fetchDadosGerais();
+    const [todas, todasOS] = await fetchDadosGerais();
     const osSemana = todasOS.filter(os => os.aberto_em && new Date(os.aberto_em) >= inicioSemana);
 
     const porExecOS = {};
@@ -1081,8 +1081,10 @@
     if(PERFIL && PERFIL.role === 'executivo' && !EVOLUCAO_EXCLUIDOS.includes(PERFIL.nome_executivo)){
       cardIndividual.style.display = 'block';
       const meuRealizado = porExecOS[PERFIL.nome_executivo] || 0;
-      const meuPct = Math.min(100, Math.round(meuRealizado/EVOLUCAO_META_INDIVIDUAL*100));
-      const meuFalta = Math.max(0, EVOLUCAO_META_INDIVIDUAL - meuRealizado);
+      const meusPendentes = todas.filter(r=>r.executivo===PERFIL.nome_executivo && r.status_fluxo==='pendente_tratamento').length;
+      // se não sobrou nenhuma pendência na carteira, considera a meta batida mesmo sem chegar a 15
+      const meuPct = meusPendentes===0 ? 100 : Math.min(100, Math.round(meuRealizado/EVOLUCAO_META_INDIVIDUAL*100));
+      const meuFalta = meusPendentes===0 ? 0 : Math.max(0, EVOLUCAO_META_INDIVIDUAL - meuRealizado);
       document.getElementById('es-meu-realizado').textContent = meuRealizado;
       document.getElementById('es-meu-pct').textContent = meuPct + '%';
       document.getElementById('es-meu-falta').textContent = meuFalta;
@@ -1281,16 +1283,23 @@
       porExecMetaSemanal[ex] = (porExecMetaSemanal[ex]||0) + 1;
     });
     const nomesConsiderados = [...new Set(todas.map(r=>r.executivo).filter(ex=>ex && !EVOLUCAO_EXCLUIDOS.includes(ex)))].sort();
+    const pendentesPorExec = {};
+    todas.forEach(r=>{
+      if(r.status_fluxo==='pendente_tratamento'){
+        pendentesPorExec[r.executivo] = (pendentesPorExec[r.executivo]||0) + 1;
+      }
+    });
     const linhasMetaSemanal = nomesConsiderados.map(ex=>{
       const realizado = porExecMetaSemanal[ex] || 0;
-      const pct = Math.min(999, Math.round(realizado/EVOLUCAO_META_INDIVIDUAL*100));
-      const bateu = realizado >= EVOLUCAO_META_INDIVIDUAL;
-      return { ex, realizado, pct, bateu };
+      const semPendencia = !pendentesPorExec[ex];
+      const pct = semPendencia ? 100 : Math.min(999, Math.round(realizado/EVOLUCAO_META_INDIVIDUAL*100));
+      const bateu = semPendencia || realizado >= EVOLUCAO_META_INDIVIDUAL;
+      return { ex, realizado, pct, bateu, semPendencia };
     }).sort((a,b)=> b.realizado - a.realizado);
     document.getElementById('tbody-meta-semanal').innerHTML = linhasMetaSemanal.length===0 ? '<tr class="empty-row"><td colspan="5">Sem dados</td></tr>' :
       linhasMetaSemanal.map(l=>`<tr>
         <td>${escapeHtml(l.ex)}</td><td>${l.realizado}</td><td>${EVOLUCAO_META_INDIVIDUAL}</td><td>${l.pct}%</td>
-        <td>${l.bateu ? '<span class="badge badge-atualizado">✅ Bateu a meta</span>' : '<span class="badge badge-pendente">Não bateu</span>'}</td>
+        <td>${l.bateu ? `<span class="badge badge-atualizado">✅ Bateu a meta${l.semPendencia && l.realizado < EVOLUCAO_META_INDIVIDUAL ? ' (sem pendência)' : ''}</span>` : '<span class="badge badge-pendente">Não bateu</span>'}</td>
       </tr>`).join('');
 
     const realizadoTimeMG = Object.values(porExecMetaSemanal).reduce((s,v)=>s+v,0);
