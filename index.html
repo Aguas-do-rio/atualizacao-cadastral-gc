@@ -250,14 +250,8 @@
           </select>
           <select id="f-retornou-pendente">
             <option value="">Todas</option>
-            <option value="sim">Retornaram para pendente (OS não executada)</option>
-          </select>
-          <select id="f-plano-acao">
-            <option value="">Todas (plano de ação)</option>
-            <option value="curva-a">Plano de ação: Curva A</option>
-            <option value="todos-dados">Plano de ação: Todos os dados pendentes</option>
-            <option value="infobeep">Plano de ação: Infobeep</option>
-            <option value="qualquer">Plano de ação: qualquer prioridade</option>
+            <option value="retornou">Retornaram para pendente (OS não executada)</option>
+            <option value="plano-acao">Plano de ação</option>
           </select>
         </div>
         <div style="overflow-x:auto;">
@@ -802,7 +796,6 @@
   document.getElementById('f-prioridade').addEventListener('change', renderCarteira);
   document.getElementById('f-curva').addEventListener('change', renderCarteira);
   document.getElementById('f-retornou-pendente').addEventListener('change', renderCarteira);
-  document.getElementById('f-plano-acao').addEventListener('change', renderCarteira);
 
   const STATUS_LABEL = {
     pendente_tratamento: '<span class="badge badge-pendente">⏳ Pendente</span>',
@@ -827,25 +820,15 @@
     const fPendencia = document.getElementById('f-pendencia').value;
     const fPrioridade = document.getElementById('f-prioridade').value;
     const fCurva = document.getElementById('f-curva').value;
-    const fRetornouPendente = document.getElementById('f-retornou-pendente').value;
-    const fPlanoAcao = document.getElementById('f-plano-acao').value;
+    const fEspecial = document.getElementById('f-retornou-pendente').value; // '' | 'retornou' | 'plano-acao'
     const filtered = CARTEIRA.filter(r=>{
-      let passaPlanoAcao = true;
-      if(fPlanoAcao){
-        const p = calcularPrioridades(r);
-        passaPlanoAcao =
-          fPlanoAcao==='curva-a' ? p.isCurvaA :
-          fPlanoAcao==='todos-dados' ? p.isTodosOsDados :
-          fPlanoAcao==='infobeep' ? p.isInfobeep :
-          p.prioritaria; // 'qualquer'
-      }
-      return passaPlanoAcao &&
-        (!busca || String(r.matricula).includes(busca) || (r.cliente||'').toLowerCase().includes(busca)) &&
+      if(fEspecial==='retornou' && !(r._retornouPendente === true && r.status_fluxo === 'pendente_tratamento')) return false;
+      if(fEspecial==='plano-acao' && !(r.status_fluxo === 'pendente_tratamento' && calcularPrioridades(r).prioritaria)) return false;
+      return (!busca || String(r.matricula).includes(busca) || (r.cliente||'').toLowerCase().includes(busca)) &&
         (!fStatus || r.status_fluxo === fStatus) &&
         (!fPendencia || r[fPendencia] === true) &&
         (!fPrioridade || (r.prioridade||'').trim().toUpperCase() === fPrioridade) &&
-        (!fCurva || r.curva === fCurva) &&
-        (!fRetornouPendente || (r._retornouPendente === true && r.status_fluxo === 'pendente_tratamento'));
+        (!fCurva || r.curva === fCurva);
     });
 
     document.getElementById('kpi-total').textContent = CARTEIRA.length;
